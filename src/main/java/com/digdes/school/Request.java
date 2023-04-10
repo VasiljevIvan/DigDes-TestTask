@@ -1,5 +1,7 @@
 package com.digdes.school;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -7,7 +9,18 @@ public class Request {
 
     private String action;
     private List<Map<String, Object>> params;
-    private List<Filter> filters;
+    private List<List<Filter>> filters;
+
+    public Request() {
+//        Map<String, Object> columns = new HashMap<>();
+//        columns.put("id", null);
+//        columns.put("lastname", null);
+//        columns.put("age", null);
+//        columns.put("cost", null);
+//        columns.put("active", null);
+//        params = new ArrayList<>();
+//        params.add(columns);
+    }
 
     public String getAction() {
         return action;
@@ -25,11 +38,11 @@ public class Request {
         this.params = params;
     }
 
-    public List<Filter> getFilters() {
+    public List<List<Filter>> getFilters() {
         return filters;
     }
 
-    public void setFilters(List<Filter> filters) {
+    public void setFilters(List<List<Filter>> filters) {
         this.filters = filters;
     }
 

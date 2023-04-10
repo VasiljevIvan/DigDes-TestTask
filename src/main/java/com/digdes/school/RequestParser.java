@@ -11,9 +11,12 @@ public class RequestParser {
         Request request = new Request();
         List<Map<String, Object>> params = new ArrayList<>();
         Map<String, Object> pairs = new HashMap<>();
-        String currParam;
-        String currVal;
-        String currOperation;
+        List<List<Filter>> allFilters = new ArrayList<>();
+        List<Filter> filters = new ArrayList<>();
+        String param;
+        String value;
+        String comparator;
+        String operator;
 
         request.setAction(getAction(requestString));
         requestString = removeAction(requestString, request.getAction());
@@ -21,100 +24,121 @@ public class RequestParser {
         if (request.getAction().equals("insert")) {
             while (!requestString.equals("")) {
                 requestString = removeEqualsOrComma(requestString);
-                currParam = getParam(requestString);
-                requestString = removeField(requestString, currParam);
-                switch (currParam.toLowerCase()) {
+                param = getParam(requestString);
+                requestString = removeField(requestString, param);
+                switch (param.toLowerCase()) {
                     case "'lastname'" -> {
                         requestString = removeEqualsOrComma(requestString);
-                        currVal = getValue(requestString, "'", currParam);
-                        requestString = removeField(requestString, currVal);
-                        pairs.put(currParam, currVal);
+                        value = getValue(requestString, "'", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, value);
                     }
                     case "'id'", "'age'" -> {
                         requestString = removeEqualsOrComma(requestString);
-                        currVal = getValue(requestString, "\\d+", currParam);
-                        requestString = removeField(requestString, currVal);
-                        pairs.put(currParam, Long.parseLong(currVal));
+                        value = getValue(requestString, "\\d+", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, Long.parseLong(value));
                     }
                     case "'cost'" -> {
                         requestString = removeEqualsOrComma(requestString);
-                        currVal = getValue(requestString, "\\d+\\.?\\d+", currParam);
-                        requestString = removeField(requestString, currVal);
-                        pairs.put(currParam, Double.parseDouble(currVal));
+                        value = getValue(requestString, "\\d+\\.?\\d+", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, Double.parseDouble(value));
                     }
                     case "'active'" -> {
                         requestString = removeEqualsOrComma(requestString);
-                        currVal = getValue(requestString, "(true|false)", currParam);
-                        requestString = removeField(requestString, currVal);
-                        pairs.put(currParam, Boolean.parseBoolean(currVal));
+                        value = getValue(requestString, "(true|false)", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, Boolean.parseBoolean(value));
                     }
-                    default -> throw new RuntimeException("В таблице нет такой колонки");
+                    default -> throw new RuntimeException("V tablitse net takoi kolonki");
                 }
             }
             params.add(pairs);
             request.setParams(params);
-            System.out.println(request);
+            //System.out.println(request);
             return request;
         } else if (request.getAction().equals("update")) {
             while (!requestString.matches("[Ww][Hh][Ee][Rr][Ee] .*") && !requestString.equals("")) {
                 requestString = removeEqualsOrComma(requestString);
-                currParam = getParam(requestString);
-                requestString = removeField(requestString, currParam);
-                switch (currParam.toLowerCase()) {
+                param = getParam(requestString);
+                requestString = removeField(requestString, param);
+                switch (param.toLowerCase()) {
                     case "'lastname'" -> {
                         requestString = removeEqualsOrComma(requestString);
-                        currVal = getValue(requestString, "'", currParam);
-                        requestString = removeField(requestString, currVal);
-                        pairs.put(currParam, currVal);
+                        value = getValue(requestString, "'", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, value);
                     }
                     case "'id'", "'age'" -> {
                         requestString = removeEqualsOrComma(requestString);
-                        currVal = getValue(requestString, "\\d+", currParam);
-                        requestString = removeField(requestString, currVal);
-                        pairs.put(currParam, Long.parseLong(currVal));
+                        value = getValue(requestString, "\\d+", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, Long.parseLong(value));
                     }
                     case "'cost'" -> {
                         requestString = removeEqualsOrComma(requestString);
-                        currVal = getValue(requestString, "\\d+\\.?\\d+", currParam);
-                        requestString = removeField(requestString, currVal);
-                        pairs.put(currParam, Double.parseDouble(currVal));
+                        value = getValue(requestString, "\\d+\\.?\\d+", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, Double.parseDouble(value));
                     }
                     case "'active'" -> {
                         requestString = removeEqualsOrComma(requestString);
-                        currVal = getValue(requestString, "(true|false)", currParam);
-                        requestString = removeField(requestString, currVal);
-                        pairs.put(currParam, Boolean.parseBoolean(currVal));
+                        value = getValue(requestString, "(true|false)", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, Boolean.parseBoolean(value));
                     }
-                    default -> throw new RuntimeException("В таблице нет такой колонки");
+                    default -> throw new RuntimeException("V tablitse net takoi kolonki");
                 }
             }
             params.add(pairs);
             request.setParams(params);
 
             if (requestString.matches("[Ww][Hh][Ee][Rr][Ee] .*")) {
-                requestString = requestString.substring(6);
+                requestString = requestString.substring(6).trim();
                 while (!requestString.equals("")) {
-                    currParam = getParam(requestString);
-                    requestString = removeField(requestString, currParam);
-                    currOperation = getOperation(requestString);
-                    requestString = removeField(requestString, currOperation);
-                    currVal = getValue2(requestString, ".*", currParam);
-                    requestString = removeField(requestString, currVal);
-                    System.out.println(currParam);
-                    System.out.println(currOperation);
-                    System.out.println(currVal);
-                    System.out.println(requestString);
+                    operator = getOperator(requestString);
+                    requestString = removeField(requestString, operator);
+
+                    param = getParam(requestString);
+                    requestString = removeField(requestString, param);
+
+                    comparator = getOperation(requestString);
+                    requestString = removeField(requestString, comparator);
+
+                    value = getValue2(requestString, ".*", param);
+                    requestString = removeField(requestString, value);
+
+                    if (operator.equalsIgnoreCase("and") || operator.equalsIgnoreCase("")) {
+                        filters.add(new Filter(param, comparator, value));
+                    } else if (operator.equalsIgnoreCase("or")) {
+                        allFilters.add(filters);
+                        filters = new ArrayList<>();
+                        filters.add(new Filter(param, comparator, value));
+                    }
                 }
             }
-            System.out.println(request);
+            allFilters.add(filters);
+            request.setFilters(allFilters);
+            //System.out.println(request);
             return request;
         } else if (request.getAction().equals("delete")) {
-
+            //System.out.println(request);
+            return request;
         } else if (request.getAction().equals("select")) {
+            //System.out.println(request);
+            return request;
+        } else throw new RuntimeException("Nevernaya komanda, ojidaetsya INSERT, UPDATE, DELETE, SELECT");
+    }
 
-        } else throw new RuntimeException("Неверная команда");
-
-        return request;
+    private static String getOperator(String requestString) {
+        if (requestString.startsWith("'"))
+            return "";
+        else if (requestString.matches("[Aa][Nn][Dd] .*"))
+            return requestString.substring(0, 3);
+        else if (requestString.matches("[Oo][Rr] .*"))
+            return requestString.substring(0, 2);
+        else throw new RuntimeException("Zadan neverniy operator, ojidaetsya AND ili OR");
     }
 
     private static String getValue2(String requestString, String regex, String currParam) {
@@ -126,9 +150,9 @@ public class RequestParser {
                 return requestString.substring(0, idxOfSpace);
             else if (requestString.matches(regex))
                 return requestString;
-            else throw new RuntimeException("Значение поля должно заканчиваться пробелом");
+            else throw new RuntimeException("Znachenie polya doljno zakanchivatsya probelom");
         } else
-            throw new RuntimeException("Неверное значение поля " + currParam);
+            throw new RuntimeException("Nevernoe znachenie polya " + currParam);
     }
 
     private static String removeAction(String requestString, String requestActionString) {
@@ -149,14 +173,14 @@ public class RequestParser {
             return requestString.substring(0, requestString.indexOf(' ')).toLowerCase();
         else if (requestString.equalsIgnoreCase("delete") || requestString.equalsIgnoreCase("select"))
             return requestString.toLowerCase();
-        else throw new RuntimeException("Только запросы DELETE и SELECT могут передаваться без параметров");
+        else throw new RuntimeException("Tolko zaprosi DELETE i SELECT mogut peredavatsya bez parametrov");
     }
 
     private static String getParam(String requestString) {
         int idxOfSecondQuote = requestString.indexOf("'", 1);
         if (requestString.startsWith("'") && idxOfSecondQuote >= 0)
             return requestString.substring(0, idxOfSecondQuote + 1);
-        else throw new RuntimeException("Название параметра должно быть строкой");
+        else throw new RuntimeException("Nazvanie parametra doljno bit strokoi");
     }
 
     private static String getValue(String requestString, String regex, String currParam) {
@@ -172,9 +196,9 @@ public class RequestParser {
                 return requestString.substring(0, Math.min(idxOfSpace, idxOfComma));
             else if (requestString.matches(regex))
                 return requestString;
-            else throw new RuntimeException("Значение поля должно заканчиваться запятой или пробелом");
+            else throw new RuntimeException("Znachenie polya doljno zakanchivatsya zapyatoi ili probelom");
         } else
-            throw new RuntimeException("Неверное значение поля " + currParam);
+            throw new RuntimeException("Nevernoe znachenie polya " + currParam);
     }
 
     private static String removeField(String requestString, String field) {
@@ -187,7 +211,7 @@ public class RequestParser {
         else if (requestString.startsWith("'"))
             return requestString;
         else
-            throw new RuntimeException("После названия параметра должен быть знак \"=\" или запятая");
+            throw new RuntimeException("Posle nazvaniya parametra doljen bit znak \"=\" ili zapyataya");
     }
 
     private static String getOperation(String requestString) {
@@ -207,6 +231,6 @@ public class RequestParser {
             return "<";
         else if (requestString.startsWith(">"))
             return ">";
-        else throw new RuntimeException("Неверный оператор сравнения");
+        else throw new RuntimeException("Neverniy operator sravneniya");
     }
 }

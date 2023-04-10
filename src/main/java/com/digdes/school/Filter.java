@@ -1,31 +1,46 @@
 package com.digdes.school;
 
 public class Filter {
-    private String parameter;
-    private String operation;
-    private Object value;
+    private String param;
+    private String comparator;
+    private String value;
 
-    public String getParameter() {
-        return parameter;
+    public Filter(String param, String comparator, String value) {
+        this.param = param;
+        this.comparator = comparator;
+        this.value = value;
     }
 
-    public void setParameter(String parameter) {
-        this.parameter = parameter;
+    public String getParam() {
+        return param;
     }
 
-    public String getOperation() {
-        return operation;
+    public void setParam(String param) {
+        this.param = param;
     }
 
-    public void setOperation(String operation) {
-        this.operation = operation;
+    public String getComparator() {
+        return comparator;
     }
 
-    public Object getValue() {
+    public void setComparator(String comparator) {
+        this.comparator = comparator;
+    }
+
+    public String getValue() {
         return value;
     }
 
-    public void setValue(Object value) {
+    public void setValue(String value) {
         this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return "Filter{" +
+                "param='" + param + '\'' +
+                ", comparator='" + comparator + '\'' +
+                ", value='" + value + '\'' +
+                '}';
     }
 }
