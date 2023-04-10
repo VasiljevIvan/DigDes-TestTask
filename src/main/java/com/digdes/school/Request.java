@@ -3,7 +3,7 @@ package com.digdes.school;
 import java.util.List;
 import java.util.Map;
 
-public class Request extends AbstractRequest {
+public class Request {
 
     private String action;
     private List<Map<String, Object>> params;

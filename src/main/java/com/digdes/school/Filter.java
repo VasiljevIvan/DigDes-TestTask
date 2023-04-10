@@ -1,16 +1,31 @@
 package com.digdes.school;
 
-import java.util.List;
-import java.util.Map;
+public class Filter {
+    private String parameter;
+    private String operation;
+    private Object value;
 
-public class Filter extends AbstractRequest {
-    private List<Map<String, Object>> params;
-
-    public List<Map<String, Object>> getParams() {
-        return params;
+    public String getParameter() {
+        return parameter;
     }
 
-    public void setParams(List<Map<String, Object>> params) {
-        this.params = params;
+    public void setParameter(String parameter) {
+        this.parameter = parameter;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
     }
 }
