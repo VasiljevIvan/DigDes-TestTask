@@ -26,7 +26,7 @@ public class RequestParser {
                 requestString = removeEqualsOrComma(requestString);
                 param = getParam(requestString);
                 requestString = removeField(requestString, param);
-                switch (param.toLowerCase()) {
+                switch (param) {
                     case "'lastname'" -> {
                         requestString = removeEqualsOrComma(requestString);
                         value = getValue(requestString, "'", param);
@@ -179,7 +179,7 @@ public class RequestParser {
     private static String getParam(String requestString) {
         int idxOfSecondQuote = requestString.indexOf("'", 1);
         if (requestString.startsWith("'") && idxOfSecondQuote >= 0)
-            return requestString.substring(0, idxOfSecondQuote + 1);
+            return requestString.substring(0, idxOfSecondQuote + 1).toLowerCase();
         else throw new RuntimeException("Nazvanie parametra doljno bit strokoi");
     }
 
