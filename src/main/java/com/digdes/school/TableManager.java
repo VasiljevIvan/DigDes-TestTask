@@ -1,7 +1,8 @@
 package com.digdes.school;
 
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static com.digdes.school.Constants.*;
 
 public class TableManager {
     private List<Map<String, Object>> table;
@@ -12,22 +13,18 @@ public class TableManager {
         this.columns = columns;
     }
 
-    public TableManager(List<Map<String, Object>> table) {
-        this.table = table;
-    }
-
     public List<Map<String, Object>> processRequest(Request request) {
         List<Map<String, Object>> result = null;
         switch (request.getAction()) {
-            case "insert" -> result = create(request);
-            case "update" -> result = update(request);
+            case INSERT -> result = create(request);
+            case UPDATE -> result = update(request);
         }
         return result;
     }
 
 
     public List<Map<String, Object>> create(Request request) {
-        table.addAll(request.getParams());
+        table.add(request.getParams());
         for (Map<String, Object> cur : table)
             for (String column : columns)
                 if (!cur.containsKey(column))
@@ -37,87 +34,83 @@ public class TableManager {
 
     private List<Map<String, Object>> update(Request request) {
         List<Map<String, Object>> result = new ArrayList<>();
-        boolean status = false;
+        boolean isMatches = false;
         for (Map<String, Object> currEntry : table) {
             for (List<Filter> condition : request.getFilters()) {
                 for (Filter currFilter : condition) {
-                    status = false;
-                    for (String currEntryParam : currEntry.keySet()) {
-                        if (currEntryParam.equals(currFilter.getParam())) {
-                            switch (currEntryParam) {
-                                case "'id'", "'age'" -> {
+                    isMatches = false;
+                    for (String column : columns) {
+                        if (column.equals(currFilter.getParam())) {
+                            switch (column) {
+                                case ID, AGE -> {
                                     if (currFilter.getValue().matches("-?\\d+")) {
-                                        Long valueTable = (Long) currEntry.get(currEntryParam);
+                                        Long valueTable = (Long) currEntry.get(column);
                                         Long valueFilter = Long.parseLong(currFilter.getValue());
                                         switch (currFilter.getComparator()) {
-                                            case "=" -> status = valueTable == valueFilter;
-                                            case "!=" -> status = valueTable != valueFilter;
-                                            case ">=" -> status = valueTable >= valueFilter;
-                                            case "<=" -> status = valueTable <= valueFilter;
-                                            case "<" -> status = valueTable < valueFilter;
-                                            case ">" -> status = valueTable > valueFilter;
-                                            default -> throw new RuntimeException("Dlya parametra " + currEntryParam +
+                                            case EQ -> isMatches = valueTable == valueFilter;
+                                            case NE -> isMatches = valueTable != valueFilter;
+                                            case GE -> isMatches = valueTable >= valueFilter;
+                                            case LE -> isMatches = valueTable <= valueFilter;
+                                            case LT -> isMatches = valueTable < valueFilter;
+                                            case GT -> isMatches = valueTable > valueFilter;
+                                            default -> throw new RuntimeException("Dlya parametra " + column +
                                                     " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                         }
-                                    } else status = false;
+                                    } else isMatches = false;
                                 }
-                                case "'lastname'" -> {
+                                case LASTNAME -> {
                                     if (currFilter.getValue().matches("'.*'")) {
-
-                                        String valueTable = (String) currEntry.get(currEntryParam);
+                                        String valueTable = (String) currEntry.get(column);
                                         String valueFilter = currFilter.getValue();
                                         switch (currFilter.getComparator()) {
-                                            case "=" -> status = valueTable.equals(valueFilter);
-                                            case "!=" -> status = !valueTable.equals(valueFilter);
-                                            case "like" -> status = valueTable.matches(
+                                            case EQ -> isMatches = valueTable.equals(valueFilter);
+                                            case NE -> isMatches = !valueTable.equals(valueFilter);
+                                            case LIKE -> isMatches = valueTable.matches(
                                                     valueFilter.replaceAll("%", ".*"));
-                                            case "ilike" -> status = valueTable.toLowerCase().matches(
+                                            case ILIKE -> isMatches = valueTable.toLowerCase().matches(
                                                     valueFilter.replaceAll("%", ".*"));
-                                            default -> throw new RuntimeException("Dlya parametra " + currEntryParam +
+                                            default -> throw new RuntimeException("Dlya parametra " + column +
                                                     " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                         }
-                                    } else status = false;
+                                    } else isMatches = false;
                                 }
-                                case "'cost'" -> {
+                                case COST -> {
                                     if (currFilter.getValue().matches("-?\\d+\\.?\\d+")) {
-                                        Double valueTable = (Double) currEntry.get(currEntryParam);
+                                        Double valueTable = (Double) currEntry.get(column);
                                         Double valueFilter = Double.parseDouble(currFilter.getValue());
                                         switch (currFilter.getComparator()) {
-                                            case "=" -> status = valueTable == valueFilter;
-                                            case "!=" -> status = valueTable != valueFilter;
-                                            case ">=" -> status = valueTable >= valueFilter;
-                                            case "<=" -> status = valueTable <= valueFilter;
-                                            case "<" -> status = valueTable < valueFilter;
-                                            case ">" -> status = valueTable > valueFilter;
-                                            default -> throw new RuntimeException("Dlya parametra " + currEntryParam +
+                                            case EQ -> isMatches = valueTable == valueFilter;
+                                            case NE -> isMatches = valueTable != valueFilter;
+                                            case GE -> isMatches = valueTable >= valueFilter;
+                                            case LE -> isMatches = valueTable <= valueFilter;
+                                            case LT -> isMatches = valueTable < valueFilter;
+                                            case GT -> isMatches = valueTable > valueFilter;
+                                            default -> throw new RuntimeException("Dlya parametra " + column +
                                                     " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                         }
-                                    } else status = false;
+                                    } else isMatches = false;
                                 }
-                                case "'active'" -> {
+                                case ACTIVE -> {
                                     if (currFilter.getValue().matches("(true|false)")) {
-                                        Boolean valueTable = (Boolean) currEntry.get(currEntryParam);
+                                        Boolean valueTable = (Boolean) currEntry.get(column);
                                         Boolean valueFilter = Boolean.parseBoolean(currFilter.getValue());
                                         switch (currFilter.getComparator()) {
-                                            case "=" -> status = valueTable == valueFilter;
-                                            case "!=" -> status = valueTable != valueFilter;
-                                            default -> throw new RuntimeException("Dlya parametra " + currEntryParam +
+                                            case EQ -> isMatches = valueTable == valueFilter;
+                                            case NE -> isMatches = valueTable != valueFilter;
+                                            default -> throw new RuntimeException("Dlya parametra " + column +
                                                     " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                         }
-                                    } else status = false;
+                                    } else isMatches = false;
                                 }
                             }
                         }
                     }
                 }
-                if (status) {
-                    for (Map<String, Object> requestParam : request.getParams()) {
-                        currEntry.put("'id'", requestParam.get("'id'"));
-                        currEntry.put("'lastname'", requestParam.get("'lastname'"));
-                        currEntry.put("'age'", requestParam.get("'age'"));
-                        currEntry.put("'cost'", requestParam.get("'cost'"));
-                        currEntry.put("'active'", requestParam.get("'active'"));
-                    }
+                if (isMatches) {
+                    Map<String, Object> requestParam = request.getParams();
+                    for (String column : columns)
+                        if (requestParam.get(column) != null)
+                            currEntry.put(column, requestParam.get(column));
                     result.add(currEntry);
                 }
             }

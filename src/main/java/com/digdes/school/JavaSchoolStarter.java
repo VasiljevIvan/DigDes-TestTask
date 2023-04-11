@@ -2,6 +2,8 @@ package com.digdes.school;
 
 import java.util.*;
 
+import static com.digdes.school.Constants.*;
+
 public class JavaSchoolStarter {
 
     private List<Map<String, Object>> table;
@@ -10,11 +12,11 @@ public class JavaSchoolStarter {
     public JavaSchoolStarter() {
         this.table = new ArrayList<>();
         this.columns = new ArrayList<>();
-        columns.add("'id'");
-        columns.add("'lastname'");
-        columns.add("'age'");
-        columns.add("'cost'");
-        columns.add("'active'");
+        columns.add(ID);
+        columns.add(LASTNAME);
+        columns.add(AGE);
+        columns.add(COST);
+        columns.add(ACTIVE);
     }
 
     public List<Map<String, Object>> execute(String requestString) throws Exception {

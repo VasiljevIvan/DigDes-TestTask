@@ -6,9 +6,8 @@ import java.util.Map;
 public class Request {
 
     private String action;
-    private List<Map<String, Object>> params;
+    private Map<String, Object> params;
     private List<List<Filter>> filters;
-
 
     public String getAction() {
         return action;
@@ -18,11 +17,11 @@ public class Request {
         this.action = action;
     }
 
-    public List<Map<String, Object>> getParams() {
+    public Map<String, Object> getParams() {
         return params;
     }
 
-    public void setParams(List<Map<String, Object>> params) {
+    public void setParams(Map<String, Object> params) {
         this.params = params;
     }
 
