@@ -63,6 +63,7 @@ public class TableManager {
                                 }
                                 case "'lastname'" -> {
                                     if (currFilter.getValue().matches("'.*'")) {
+
                                         String valueTable = (String) currEntry.get(currEntryParam);
                                         String valueFilter = currFilter.getValue();
                                         switch (currFilter.getComparator()) {
@@ -117,6 +118,7 @@ public class TableManager {
                         currEntry.put("'cost'", requestParam.get("'cost'"));
                         currEntry.put("'active'", requestParam.get("'active'"));
                     }
+                    result.add(currEntry);
                 }
             }
         }

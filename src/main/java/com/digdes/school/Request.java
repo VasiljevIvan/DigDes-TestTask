@@ -1,7 +1,5 @@
 package com.digdes.school;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,16 +9,6 @@ public class Request {
     private List<Map<String, Object>> params;
     private List<List<Filter>> filters;
 
-    public Request() {
-//        Map<String, Object> columns = new HashMap<>();
-//        columns.put("id", null);
-//        columns.put("lastname", null);
-//        columns.put("age", null);
-//        columns.put("cost", null);
-//        columns.put("active", null);
-//        params = new ArrayList<>();
-//        params.add(columns);
-    }
 
     public String getAction() {
         return action;
