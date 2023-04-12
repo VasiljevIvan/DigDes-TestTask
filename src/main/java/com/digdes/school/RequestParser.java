@@ -26,32 +26,57 @@ public class RequestParser {
         String param, value;
         while (!requestString.toLowerCase().matches("where .*") && !requestString.equals("")) {
             requestString = removeEqualsOrComma(requestString);
-            param = getParam(requestString);
+            param = getFieldWithQuotes(requestString).toLowerCase();
             requestString = removeField(requestString, param);
             switch (param) {
                 case LASTNAME -> {
                     requestString = removeEqualsOrComma(requestString);
-                    value = getValue(requestString, "'", param);
-                    requestString = removeField(requestString, value);
-                    pairs.put(param, value);
+                    if (requestString.matches("^null( |,).*")) {
+                        value = getValue(requestString, "", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, NULL);
+                    } else {
+                        value = getFieldWithQuotes(requestString);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, value);
+                    }
+
                 }
                 case ID, AGE -> {
                     requestString = removeEqualsOrComma(requestString);
-                    value = getValue(requestString, "\\d+", param);
-                    requestString = removeField(requestString, value);
-                    pairs.put(param, Long.parseLong(value));
+                    if (requestString.matches("^null( |,).*")) {
+                        value = getValue(requestString, "", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, NULL);
+                    } else {
+                        value = getValue(requestString, "\\d+", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, Long.parseLong(value));
+                    }
                 }
                 case COST -> {
                     requestString = removeEqualsOrComma(requestString);
-                    value = getValue(requestString, "\\d+\\.?\\d+", param);
-                    requestString = removeField(requestString, value);
-                    pairs.put(param, Double.parseDouble(value));
+                    if (requestString.matches("^null( |,).*")) {
+                        value = getValue(requestString, "", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, NULL);
+                    } else {
+                        value = getValue(requestString, "\\d+\\.?\\d+", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, Double.parseDouble(value));
+                    }
                 }
                 case ACTIVE -> {
                     requestString = removeEqualsOrComma(requestString);
-                    value = getValue(requestString, "(true|false)", param);
-                    requestString = removeField(requestString, value);
-                    pairs.put(param, Boolean.parseBoolean(value));
+                    if (requestString.matches("^null( |,).*")) {
+                        value = getValue(requestString, "", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, NULL);
+                    } else {
+                        value = getValue(requestString, "(true|false)", param);
+                        requestString = removeField(requestString, value);
+                        pairs.put(param, Boolean.parseBoolean(value));
+                    }
                 }
                 default -> throw new RuntimeException("V tablitse net takoi kolonki");
             }
@@ -69,11 +94,14 @@ public class RequestParser {
             while (!requestString.equals("")) {
                 operator = getOperator(requestString);
                 requestString = removeField(requestString, operator);
-                param = getParam(requestString);
+                param = getFieldWithQuotes(requestString).toLowerCase();
                 requestString = removeField(requestString, param);
                 comparator = getOperation(requestString);
                 requestString = removeField(requestString, comparator);
-                value = getValueOfFilter(requestString, ".*", param);
+                if (param.equals(LASTNAME) && !requestString.startsWith(NULL+" "))
+                    value = getFieldWithQuotes(requestString);
+                else
+                    value = getValueOfFilter(requestString, ".*", param);
                 requestString = removeField(requestString, value);
                 if (operator.equalsIgnoreCase("and") || operator.equalsIgnoreCase("")) {
                     filters.add(new Filter(param, comparator, value));
@@ -83,9 +111,17 @@ public class RequestParser {
                     filters.add(new Filter(param, comparator, value));
                 }
             }
+            allFilters.add(filters);
         }
-        allFilters.add(filters);
         request.setFilters(allFilters);
+    }
+
+    private static String getAction(String requestString) {
+        if (requestString.toLowerCase().matches("^(insert values |update values |delete |select ).*")) {
+            return requestString.substring(0, requestString.indexOf(' ')).toLowerCase();
+        } else if (requestString.equalsIgnoreCase(DELETE) || requestString.equalsIgnoreCase(SELECT))
+            return requestString.toLowerCase();
+        else throw new RuntimeException("Tolko zaprosi DELETE i SELECT mogut peredavatsya bez parametrov");
     }
 
     private static String removeAction(String requestString, String requestActionString) {
@@ -101,19 +137,11 @@ public class RequestParser {
         return requestString.trim();
     }
 
-    private static String getAction(String requestString) {
-        if (requestString.contains(" "))
-            return requestString.substring(0, requestString.indexOf(' ')).toLowerCase();
-        else if (requestString.equalsIgnoreCase("delete") || requestString.equalsIgnoreCase("select"))
-            return requestString.toLowerCase();
-        else throw new RuntimeException("Tolko zaprosi DELETE i SELECT mogut peredavatsya bez parametrov");
-    }
-
-    private static String getParam(String requestString) {
+    private static String getFieldWithQuotes(String requestString) {
         int idxOfSecondQuote = requestString.indexOf("'", 1);
         if (requestString.startsWith("'") && idxOfSecondQuote >= 0)
-            return requestString.substring(0, idxOfSecondQuote + 1).toLowerCase();
-        else throw new RuntimeException("Nazvanie parametra doljno bit strokoi");
+            return requestString.substring(0, idxOfSecondQuote + 1);
+        else throw new RuntimeException("Pole doljno bit videleno znakami \"'\"");
     }
 
     private static String getValue(String requestString, String regex, String currParam) {
@@ -144,7 +172,9 @@ public class RequestParser {
         else if (requestString.startsWith("'"))
             return requestString;
         else
-            throw new RuntimeException("Posle nazvaniya parametra doljen bit znak \"=\" ili zapyataya");
+            throw new RuntimeException("Posle nazvaniya parametra doljen bit znak \"=\".\n" +
+                    "Posle znacheniya doljna bit zapyataya.\n" +
+                    "Pole doljno bit videleno znakami \"'\"");
     }
 
     private static String getOperation(String requestString) {

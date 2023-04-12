@@ -1,6 +1,8 @@
 package com.digdes.school;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static com.digdes.school.Constants.*;
 
@@ -22,7 +24,9 @@ public class JavaSchoolStarter {
     public List<Map<String, Object>> execute(String requestString) throws Exception {
         Request request = RequestParser.parse(requestString);
         TableManager tableManager = new TableManager(table,columns);
+        //System.out.println("table: " + table);
+        List<Map<String, Object>> result = tableManager.processRequest(request);
         System.out.println(table);
-        return tableManager.processRequest(request);
+        return result;
     }
 }
