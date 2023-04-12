@@ -61,7 +61,7 @@ public class RequestParser {
                         requestString = removeField(requestString, value);
                         pairs.put(param, NULL);
                     } else {
-                        value = getValue(requestString, "\\d+\\.?\\d+", param);
+                        value = getValue(requestString, "\\d+(\\.\\d+)?", param);
                         requestString = removeField(requestString, value);
                         pairs.put(param, Double.parseDouble(value));
                     }
@@ -117,7 +117,7 @@ public class RequestParser {
     }
 
     private static String getAction(String requestString) {
-        if (requestString.toLowerCase().matches("^(insert values |update values |delete |select ).*")) {
+        if (requestString.toLowerCase().matches("^(insert +values +|update +values +|delete +where +|select +where +).*")) {
             return requestString.substring(0, requestString.indexOf(' ')).toLowerCase();
         } else if (requestString.equalsIgnoreCase(DELETE) || requestString.equalsIgnoreCase(SELECT))
             return requestString.toLowerCase();

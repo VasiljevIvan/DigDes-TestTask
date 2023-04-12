@@ -27,15 +27,17 @@ public class TableManager {
     private List<Map<String, Object>> select(Request request) {
         List<Map<String, Object>> result = new ArrayList<>();
         boolean isMatches = false;
+        if (request.getParams() == null && request.getFilters().isEmpty())
+            return table;
         for (Map<String, Object> currEntry : table) {
             for (List<Filter> condition : request.getFilters()) {
                 for (Filter currFilter : condition) {
                     isMatches = false;
                     for (String column : columns) {
-                        if (column.equals(currFilter.getParam()) && currEntry.get(column)!=null) {
+                        if (column.equals(currFilter.getParam())) {
                             switch (column) {
                                 case ID, AGE -> {
-                                    if (currFilter.getValue().matches("-?\\d+") && !currEntry.get(column).equals(NULL)) {
+                                    if (currFilter.getValue().matches("-?\\d+") && currEntry.get(column) != null && !currEntry.get(column).equals(NULL)) {
                                         Long valueTable = (Long) currEntry.get(column);
                                         Long valueFilter = Long.parseLong(currFilter.getValue());
                                         switch (currFilter.getComparator()) {
@@ -115,12 +117,18 @@ public class TableManager {
         List<Map<String, Object>> result = new ArrayList<>();
         List<Map<String, Object>> entriesToRemove = new ArrayList<>();
         boolean isMatches = false;
+        if (request.getParams() == null && request.getFilters().isEmpty()) {
+            result = table;
+            table = new ArrayList<>();
+            return result;
+        }
+
         for (Map<String, Object> currEntry : table) {
             for (List<Filter> condition : request.getFilters()) {
                 for (Filter currFilter : condition) {
                     isMatches = false;
                     for (String column : columns) {
-                        if (column.equals(currFilter.getParam()) && currEntry.get(column)!=null) {
+                        if (column.equals(currFilter.getParam()) && currEntry.get(column) != null) {
                             switch (column) {
                                 case ID, AGE -> {
                                     if (currFilter.getValue().matches("-?\\d+") && !currEntry.get(column).equals(NULL)) {
@@ -196,7 +204,8 @@ public class TableManager {
                 }
             }
         }
-        for (Map<String,Object> entryToRemove :entriesToRemove)
+
+        for (Map<String, Object> entryToRemove : entriesToRemove)
             table.remove(entryToRemove);
         return result;
     }
@@ -229,7 +238,7 @@ public class TableManager {
                 for (Filter currFilter : condition) {
                     isMatches = false;
                     for (String column : columns) {
-                        if (column.equals(currFilter.getParam()) && currEntry.get(column)!=null) {
+                        if (column.equals(currFilter.getParam()) && currEntry.get(column) != null) {
                             switch (column) {
                                 case ID, AGE -> {
                                     if (currFilter.getValue().matches("-?\\d+") && !currEntry.get(column).equals(NULL)) {
@@ -320,7 +329,7 @@ public class TableManager {
                     entriesToRemove.add(currEntry);
             }
         }
-        for (Map<String,Object> entryToRemove :entriesToRemove)
+        for (Map<String, Object> entryToRemove : entriesToRemove)
             table.remove(entryToRemove);
         return result;
     }
