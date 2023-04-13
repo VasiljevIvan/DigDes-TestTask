@@ -29,7 +29,7 @@ public class RequestParser {
             param = getFieldWithQuotes(requestString).toLowerCase();
             requestString = removeField(requestString, param);
             requestString = removeEqualsOrComma(requestString);
-            if (requestString.matches("^null( |,).*"))
+            if (requestString.matches("^null[ ,].*"))
                 value = getValue(requestString, "", param);
             else
                 switch (param) {
@@ -59,7 +59,7 @@ public class RequestParser {
                 requestString = removeField(requestString, param);
                 comparator = getOperation(requestString);
                 requestString = removeField(requestString, comparator);
-                if (requestString.startsWith(NULL))
+                if (requestString.matches("^null ?.*"))
                     throw new RuntimeException("V filtrah WHERE nelza peredavat 'null'");
                 switch (param) {
                     case LASTNAME -> value = getFieldWithQuotes(requestString);

@@ -26,17 +26,23 @@ public class TableManager {
 
     public List<Map<String, Object>> create(Request request) {
         List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Object> entryToPut = new HashMap<>();
         Map<String, Object> resultEntry = new HashMap<>();
+        Map<String, Object> requestEntry = request.getParams();
 
-        table.add(request.getParams());
-
-        for (Map<String, Object> currEntry : table)
-            for (String column : columns) {
-                if (!currEntry.containsKey(column))
-                    currEntry.put(column, NULL);
-                if (currEntry.get(column) != null)
-                    resultEntry.put(column, currEntry.get(column));
+        for (String column : columns) {
+            Object requestValue = requestEntry.get(column);
+            if (requestValue == null)
+                entryToPut.put(column, NULL);
+            else if (requestValue.equals(NULL))
+                entryToPut.put(column, NULL);
+            else {
+                entryToPut.put(column, requestValue);
+                resultEntry.put(column, requestValue);
             }
+        }
+
+        table.add(entryToPut);
 
         result.add(resultEntry);
         return result;
@@ -51,10 +57,11 @@ public class TableManager {
                 boolean isMatches = false, isRemoved = false;
                 int conditionsMatchesCounter = 0;
                 for (Filter currFilter : condition) {
+                    Object currEntryValue = currEntry.get(currFilter.getParam());
                     switch (currFilter.getParam()) {
                         case LASTNAME -> {
-                            if (currFilter.getValue().matches("'.*'") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                String valueTable = (String) currEntry.get(currFilter.getParam());
+                            if (currFilter.getValue().matches("'.*'") && !currEntryValue.equals(NULL)) {
+                                String valueTable = (String) currEntryValue;
                                 String valueFilter = currFilter.getValue();
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = valueTable.equals(valueFilter);
@@ -69,8 +76,8 @@ public class TableManager {
                             } else isMatches = false;
                         }
                         case ID, AGE -> {
-                            if (currFilter.getValue().matches("\\d+") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                Long valueTable = Long.parseLong((String) currEntry.get(currFilter.getParam()));
+                            if (currFilter.getValue().matches("\\d+") && !currEntryValue.equals(NULL)) {
+                                Long valueTable = Long.parseLong((String) currEntryValue);
                                 Long valueFilter = Long.parseLong(currFilter.getValue());
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = Objects.equals(valueTable, valueFilter);
@@ -82,11 +89,11 @@ public class TableManager {
                                     default -> throw new RuntimeException("Dlya parametra " + currFilter.getParam() +
                                             " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                 }
-                            } else isMatches = false;
+                            } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
                         }
                         case COST -> {
-                            if (currFilter.getValue().matches("\\d+(\\.\\d+)?") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                Double valueTable = Double.parseDouble((String) currEntry.get(currFilter.getParam()));
+                            if (currFilter.getValue().matches("\\d+(\\.\\d+)?") && !currEntryValue.equals(NULL)) {
+                                Double valueTable = Double.parseDouble((String) currEntryValue);
                                 Double valueFilter = Double.parseDouble(currFilter.getValue());
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = Objects.equals(valueTable, valueFilter);
@@ -98,11 +105,11 @@ public class TableManager {
                                     default -> throw new RuntimeException("Dlya parametra " + currFilter.getParam() +
                                             " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                 }
-                            } else isMatches = false;
+                            } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
                         }
                         case ACTIVE -> {
-                            if (currFilter.getValue().matches("(true|false)") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                boolean valueTable = Boolean.parseBoolean((String) currEntry.get(currFilter.getParam()));
+                            if (currFilter.getValue().matches("(true|false)") && !currEntryValue.equals(NULL)) {
+                                boolean valueTable = Boolean.parseBoolean((String) currEntryValue);
                                 boolean valueFilter = Boolean.parseBoolean(currFilter.getValue());
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = valueTable == valueFilter;
@@ -110,7 +117,7 @@ public class TableManager {
                                     default -> throw new RuntimeException("Dlya parametra " + currFilter.getParam() +
                                             " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                 }
-                            } else isMatches = false;
+                            } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
                         }
                     }
                     if (isMatches)
@@ -157,10 +164,11 @@ public class TableManager {
                 boolean isMatches = false;
                 int conditionsMatchesCounter = 0;
                 for (Filter currFilter : condition) {
+                    Object currEntryValue = currEntry.get(currFilter.getParam());
                     switch (currFilter.getParam()) {
                         case LASTNAME -> {
-                            if (currFilter.getValue().matches("'.*'") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                String valueTable = (String) currEntry.get(currFilter.getParam());
+                            if (currFilter.getValue().matches("'.*'") && !currEntryValue.equals(NULL)) {
+                                String valueTable = (String) currEntryValue;
                                 String valueFilter = currFilter.getValue();
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = valueTable.equals(valueFilter);
@@ -172,11 +180,11 @@ public class TableManager {
                                     default -> throw new RuntimeException("Dlya parametra " + currFilter.getParam() +
                                             " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                 }
-                            } else isMatches = false;
+                            } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
                         }
                         case ID, AGE -> {
-                            if (currFilter.getValue().matches("\\d+") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                Long valueTable = Long.parseLong((String) currEntry.get(currFilter.getParam()));
+                            if (currFilter.getValue().matches("\\d+") && !currEntryValue.equals(NULL)) {
+                                Long valueTable = Long.parseLong((String) currEntryValue);
                                 Long valueFilter = Long.parseLong(currFilter.getValue());
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = Objects.equals(valueTable, valueFilter);
@@ -188,11 +196,11 @@ public class TableManager {
                                     default -> throw new RuntimeException("Dlya parametra " + currFilter.getParam() +
                                             " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                 }
-                            } else isMatches = false;
+                            } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
                         }
                         case COST -> {
-                            if (currFilter.getValue().matches("\\d+(\\.\\d+)?") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                Double valueTable = Double.parseDouble((String) currEntry.get(currFilter.getParam()));
+                            if (currFilter.getValue().matches("\\d+(\\.\\d+)?") && !currEntryValue.equals(NULL)) {
+                                Double valueTable = Double.parseDouble((String) currEntryValue);
                                 Double valueFilter = Double.parseDouble(currFilter.getValue());
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = Objects.equals(valueTable, valueFilter);
@@ -204,11 +212,11 @@ public class TableManager {
                                     default -> throw new RuntimeException("Dlya parametra " + currFilter.getParam() +
                                             " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                 }
-                            } else isMatches = false;
+                            } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
                         }
                         case ACTIVE -> {
-                            if (currFilter.getValue().matches("(true|false)") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                boolean valueTable = Boolean.parseBoolean((String) currEntry.get(currFilter.getParam()));
+                            if (currFilter.getValue().matches("(true|false)") && !currEntryValue.equals(NULL)) {
+                                boolean valueTable = Boolean.parseBoolean((String) currEntryValue);
                                 boolean valueFilter = Boolean.parseBoolean(currFilter.getValue());
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = valueTable == valueFilter;
@@ -216,7 +224,7 @@ public class TableManager {
                                     default -> throw new RuntimeException("Dlya parametra " + currFilter.getParam() +
                                             " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                 }
-                            } else isMatches = false;
+                            } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
                         }
                     }
                     if (isMatches)
@@ -248,10 +256,11 @@ public class TableManager {
                 boolean isMatches = false;
                 int conditionsMatchesCounter = 0;
                 for (Filter currFilter : condition) {
+                    Object currEntryValue = currEntry.get(currFilter.getParam());
                     switch (currFilter.getParam()) {
                         case LASTNAME -> {
-                            if (currFilter.getValue().matches("'.*'") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                String valueTable = (String) currEntry.get(currFilter.getParam());
+                            if (currFilter.getValue().matches("'.*'") && !currEntryValue.equals(NULL)) {
+                                String valueTable = (String) currEntryValue;
                                 String valueFilter = currFilter.getValue();
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = valueTable.equals(valueFilter);
@@ -263,11 +272,11 @@ public class TableManager {
                                     default -> throw new RuntimeException("Dlya parametra " + currFilter.getParam() +
                                             " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                 }
-                            } else isMatches = false;
+                            } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
                         }
                         case ID, AGE -> {
-                            if (currFilter.getValue().matches("\\d+") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                Long valueTable = Long.parseLong((String) currEntry.get(currFilter.getParam()));
+                            if (currFilter.getValue().matches("\\d+") && !currEntryValue.equals(NULL)) {
+                                Long valueTable = Long.parseLong((String) currEntryValue);
                                 Long valueFilter = Long.parseLong(currFilter.getValue());
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = Objects.equals(valueTable, valueFilter);
@@ -279,11 +288,11 @@ public class TableManager {
                                     default -> throw new RuntimeException("Dlya parametra " + currFilter.getParam() +
                                             " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                 }
-                            } else isMatches = false;
+                            } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
                         }
                         case COST -> {
-                            if (currFilter.getValue().matches("\\d+(\\.\\d+)?") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                Double valueTable = Double.parseDouble((String) currEntry.get(currFilter.getParam()));
+                            if (currFilter.getValue().matches("\\d+(\\.\\d+)?") && !currEntryValue.equals(NULL)) {
+                                Double valueTable = Double.parseDouble((String) currEntryValue);
                                 Double valueFilter = Double.parseDouble(currFilter.getValue());
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = Objects.equals(valueTable, valueFilter);
@@ -295,11 +304,11 @@ public class TableManager {
                                     default -> throw new RuntimeException("Dlya parametra " + currFilter.getParam() +
                                             " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                 }
-                            } else isMatches = false;
+                            } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
                         }
                         case ACTIVE -> {
-                            if (currFilter.getValue().matches("(true|false)") && !currEntry.get(currFilter.getParam()).equals(NULL)) {
-                                boolean valueTable = Boolean.parseBoolean((String) currEntry.get(currFilter.getParam()));
+                            if (currFilter.getValue().matches("(true|false)") && !currEntryValue.equals(NULL)) {
+                                boolean valueTable = Boolean.parseBoolean((String) currEntryValue);
                                 boolean valueFilter = Boolean.parseBoolean(currFilter.getValue());
                                 switch (currFilter.getComparator()) {
                                     case EQ -> isMatches = valueTable == valueFilter;
@@ -307,7 +316,7 @@ public class TableManager {
                                     default -> throw new RuntimeException("Dlya parametra " + currFilter.getParam() +
                                             " nelzya ispolzovat oerator \"" + currFilter.getComparator() + "\"");
                                 }
-                            } else isMatches = false;
+                            } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
                         }
                     }
                     if (isMatches)

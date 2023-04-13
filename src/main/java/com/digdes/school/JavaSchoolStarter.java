@@ -26,7 +26,7 @@ public class JavaSchoolStarter {
         TableManager tableManager = new TableManager(table,columns);
 
         List<Map<String, Object>> result = tableManager.processRequest(request);
-        System.out.println("table: " + table);
+        //System.out.println("table: " + table);
         return result;
     }
 }
