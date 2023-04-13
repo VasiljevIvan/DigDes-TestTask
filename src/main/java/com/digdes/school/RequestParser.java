@@ -29,8 +29,8 @@ public class RequestParser {
             param = getFieldWithQuotes(requestString).toLowerCase();
             requestString = removeField(requestString, param);
             requestString = removeEqualsOrComma(requestString);
-            if (requestString.matches("^null[ ,].*"))
-                value = getValue(requestString, "", param);
+            if (requestString.matches("^null[ ,]?.*"))
+                value = getValue(requestString, "^null[ ,]?.*", param);
             else
                 switch (param) {
                     case LASTNAME -> value = getFieldWithQuotes(requestString);

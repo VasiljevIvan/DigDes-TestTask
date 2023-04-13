@@ -132,7 +132,7 @@ public class TableManager {
                         currEntry.put(column, requestParam.get(column));
 
                     for (String column : currEntry.keySet())
-                        if (currEntry.get(column) != null)
+                        if (!currEntry.get(column).equals(NULL))
                             resultEntry.put(column, currEntry.get(column));
                         else
                             nullValues++;
@@ -153,6 +153,7 @@ public class TableManager {
     private List<Map<String, Object>> delete(Request request) {
         List<Map<String, Object>> result = new ArrayList<>();
         List<Map<String, Object>> entriesToRemove = new ArrayList<>();
+
         if (request.getParams() == null && request.getFilters().isEmpty()) {
             result = table;
             table = new ArrayList<>();
