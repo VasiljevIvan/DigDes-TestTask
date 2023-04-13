@@ -24,9 +24,9 @@ public class JavaSchoolStarter {
     public List<Map<String, Object>> execute(String requestString) throws Exception {
         Request request = RequestParser.parse(requestString);
         TableManager tableManager = new TableManager(table,columns);
-        //System.out.println("table: " + table);
+
         List<Map<String, Object>> result = tableManager.processRequest(request);
-        System.out.println(table);
+        System.out.println("table: " + table);
         return result;
     }
 }

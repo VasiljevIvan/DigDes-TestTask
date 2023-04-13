@@ -28,58 +28,19 @@ public class RequestParser {
             requestString = removeEqualsOrComma(requestString);
             param = getFieldWithQuotes(requestString).toLowerCase();
             requestString = removeField(requestString, param);
-            switch (param) {
-                case LASTNAME -> {
-                    requestString = removeEqualsOrComma(requestString);
-                    if (requestString.matches("^null( |,).*")) {
-                        value = getValue(requestString, "", param);
-                        requestString = removeField(requestString, value);
-                        pairs.put(param, NULL);
-                    } else {
-                        value = getFieldWithQuotes(requestString);
-                        requestString = removeField(requestString, value);
-                        pairs.put(param, value);
-                    }
-
+            requestString = removeEqualsOrComma(requestString);
+            if (requestString.matches("^null( |,).*"))
+                value = getValue(requestString, "", param);
+            else
+                switch (param) {
+                    case LASTNAME -> value = getFieldWithQuotes(requestString);
+                    case ID, AGE -> value = getValue(requestString, "\\d+", param);
+                    case COST -> value = getValue(requestString, "\\d+(\\.\\d+)?", param);
+                    case ACTIVE -> value = getValue(requestString, "(true|false)", param);
+                    default -> throw new RuntimeException("V tablitse net takoi kolonki");
                 }
-                case ID, AGE -> {
-                    requestString = removeEqualsOrComma(requestString);
-                    if (requestString.matches("^null( |,).*")) {
-                        value = getValue(requestString, "", param);
-                        requestString = removeField(requestString, value);
-                        pairs.put(param, NULL);
-                    } else {
-                        value = getValue(requestString, "\\d+", param);
-                        requestString = removeField(requestString, value);
-                        pairs.put(param, Long.parseLong(value));
-                    }
-                }
-                case COST -> {
-                    requestString = removeEqualsOrComma(requestString);
-                    if (requestString.matches("^null( |,).*")) {
-                        value = getValue(requestString, "", param);
-                        requestString = removeField(requestString, value);
-                        pairs.put(param, NULL);
-                    } else {
-                        value = getValue(requestString, "\\d+(\\.\\d+)?", param);
-                        requestString = removeField(requestString, value);
-                        pairs.put(param, Double.parseDouble(value));
-                    }
-                }
-                case ACTIVE -> {
-                    requestString = removeEqualsOrComma(requestString);
-                    if (requestString.matches("^null( |,).*")) {
-                        value = getValue(requestString, "", param);
-                        requestString = removeField(requestString, value);
-                        pairs.put(param, NULL);
-                    } else {
-                        value = getValue(requestString, "(true|false)", param);
-                        requestString = removeField(requestString, value);
-                        pairs.put(param, Boolean.parseBoolean(value));
-                    }
-                }
-                default -> throw new RuntimeException("V tablitse net takoi kolonki");
-            }
+            requestString = removeField(requestString, value);
+            pairs.put(param, value);
         }
         request.setParams(pairs);
         parseFilters(requestString, request);
@@ -98,10 +59,15 @@ public class RequestParser {
                 requestString = removeField(requestString, param);
                 comparator = getOperation(requestString);
                 requestString = removeField(requestString, comparator);
-                if (param.equals(LASTNAME) && !requestString.startsWith(NULL+" "))
-                    value = getFieldWithQuotes(requestString);
-                else
-                    value = getValueOfFilter(requestString, ".*", param);
+                if (requestString.startsWith(NULL))
+                    throw new RuntimeException("V filtrah WHERE nelza peredavat 'null'");
+                switch (param) {
+                    case LASTNAME -> value = getFieldWithQuotes(requestString);
+                    case ID, AGE -> value = getValueOfFilter(requestString, "\\d+", param);
+                    case COST -> value = getValueOfFilter(requestString, "\\d+(\\.\\d+)?", param);
+                    case ACTIVE -> value = getValueOfFilter(requestString, "(true|false)", param);
+                    default -> throw new RuntimeException("V tablitse net takoi kolonki");
+                }
                 requestString = removeField(requestString, value);
                 if (operator.equalsIgnoreCase("and") || operator.equalsIgnoreCase("")) {
                     filters.add(new Filter(param, comparator, value));
@@ -172,9 +138,10 @@ public class RequestParser {
         else if (requestString.startsWith("'"))
             return requestString;
         else
-            throw new RuntimeException("Posle nazvaniya parametra doljen bit znak \"=\".\n" +
-                    "Posle znacheniya doljna bit zapyataya.\n" +
-                    "Pole doljno bit videleno znakami \"'\"");
+            throw new RuntimeException("""
+                    Posle nazvaniya parametra doljen bit znak "=".
+                    Posle znacheniya doljna bit zapyataya.
+                    Pole doljno bit videleno znakami "'\"""");
     }
 
     private static String getOperation(String requestString) {

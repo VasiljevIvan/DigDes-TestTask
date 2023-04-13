@@ -42,14 +42,14 @@ public class Main {
             System.out.println("request: " + starter.execute("INSERT VALUES 'lastName' = 'Fedorov' , 'id'=3, 'age'=40, 'cost'=0.15, 'active'=true"));
             System.out.println("request: " + starter.execute("INSERT VALUES 'lastName' = 'Incestov' , 'id'=33, 'age'=55,'cost'=33.2, 'active'=false"));
             System.out.println("request: " + starter.execute("INSERT VALUES 'lastName' = 'Evstigneev' , 'id'=0, 'age'=0,'cost'=45.6213, 'active'=true"));
-            System.out.println("request: " + starter.execute("INSERT VALUES 'lastName' = 'Incestov' , 'id'=99999, 'age'=300,'cost'=999999, 'active'=false"));
+            System.out.println("request: " + starter.execute("INSERT VALUES 'lastName' = 'Incestov' , 'id'=40, 'age'=3000,'cost'=999999, 'active'=false"));
             System.out.println("request: " + starter.execute("INSERT VALUES 'lastName' = 'Sidorov' , 'id'=40, 'age'=99999 ,'cost'=0, 'active'=true"));
 
 
             System.out.println("request: " + starter.execute("SELECT"));
             System.out.println("request: " + starter.execute("SELECT "));
-
-            System.out.println("request: " + starter.execute("SELECT WHERE 'age'>30 and 'lastName' ilike '%est%'"));
+//
+            System.out.println("request: " + starter.execute("SELECT WHERE 'age'>0 and 'id'=40 and 'cost'=0 or 'id'=0"));
             System.out.println("request: " + starter.execute("SELECT WHERE 'age'>=55 and 'lastName' like '%est%'"));
             System.out.println("request: " + starter.execute("SELECT WHERE 'age'!=0 and 'age'<45"));
 
@@ -58,9 +58,9 @@ public class Main {
             System.out.println("request: " + starter.execute("SELECT WHERE 'cost'>5 and 'active'=false and 'age' !=0 or 'age'=0"));
             System.out.println("request: " + starter.execute("SELECT WHERE 'lastName' like '%idor%'"));
             System.out.println("request: " + starter.execute("SELECT WHERE 'cost' > 33.19 and 'cost' < 33.21"));
-            System.out.println("request: " + starter.execute("SELECT WHERE 'cost' = 33.20000"));
-            System.out.println("request: " + starter.execute("SELECT WHERE 'active' != true"));
-            System.out.println("request: " + starter.execute("SELECT WHERE 'lastName' != 'Сидор'"));
+            System.out.println("request: " + starter.execute("DELETE WHERE 'cost' <1000"));
+            System.out.println("request: " + starter.execute("DELETE"));
+            System.out.println("request: " + starter.execute("SELECT"));
 
             System.out.println(System.currentTimeMillis()-start);
         } catch (Exception ex) {
