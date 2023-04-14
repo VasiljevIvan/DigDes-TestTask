@@ -9,6 +9,10 @@ public class Request {
     private Map<String, Object> params;
     private List<List<Filter>> filters;
 
+    public Request(String action) {
+        this.action = action;
+    }
+
     public String getAction() {
         return action;
     }

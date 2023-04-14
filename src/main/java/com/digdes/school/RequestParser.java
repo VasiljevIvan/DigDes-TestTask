@@ -9,11 +9,10 @@ import static com.digdes.school.Constants.*;
 
 public class RequestParser {
     public static Request parse(String requestString) {
-        requestString = requestString.trim();
-        Request request = new Request();
-        request.setAction(getAction(requestString));
-        requestString = removeAction(requestString, request.getAction());
-        switch (request.getAction()) {
+        String requestAction = getAction(requestString);
+        Request request = new Request(requestAction);
+        requestString = removeAction(requestString, requestAction);
+        switch (requestAction) {
             case INSERT, UPDATE -> parseParams(requestString, request);
             case DELETE, SELECT -> parseFilters(requestString, request);
             default -> throw new RuntimeException("Nevernaya komanda, ojidaetsya INSERT, UPDATE, DELETE, SELECT");
@@ -22,59 +21,62 @@ public class RequestParser {
     }
 
     private static void parseParams(String requestString, Request request) {
-        Map<String, Object> pairs = new HashMap<>();
-        String param, value;
+        Map<String, Object> entry = new HashMap<>();
+        String paramTitle, paramValue;
+
         while (!requestString.toLowerCase().matches("where .*") && !requestString.equals("")) {
             requestString = removeEqualsOrComma(requestString);
-            param = getFieldWithQuotes(requestString).toLowerCase();
-            requestString = removeField(requestString, param);
+
+            paramTitle = getFieldWithQuotes(requestString).toLowerCase();
+            requestString = removeField(requestString, paramTitle);
+
             requestString = removeEqualsOrComma(requestString);
             if (requestString.matches("^null[ ,]?.*"))
-                value = getValue(requestString, "^null[ ,]?.*", param);
+                paramValue = getValue(requestString, "null", paramTitle);
             else
-                switch (param) {
-                    case LASTNAME -> value = getFieldWithQuotes(requestString);
-                    case ID, AGE -> value = getValue(requestString, "\\d+", param);
-                    case COST -> value = getValue(requestString, "\\d+(\\.\\d+)?", param);
-                    case ACTIVE -> value = getValue(requestString, "(true|false)", param);
+                paramValue = switch (paramTitle) {
+                    case LASTNAME -> getFieldWithQuotes(requestString);
+                    case ID, AGE -> getValue(requestString, "\\d+", paramTitle);
+                    case COST -> getValue(requestString, "\\d+(\\.\\d+)?", paramTitle);
+                    case ACTIVE -> getValue(requestString, "(true|false)", paramTitle);
                     default -> throw new RuntimeException("V tablitse net takoi kolonki");
-                }
-            requestString = removeField(requestString, value);
-            pairs.put(param, value);
+                };
+            requestString = removeField(requestString, paramValue);
+            entry.put(paramTitle, paramValue);
         }
-        request.setParams(pairs);
+        request.setParams(entry);
         parseFilters(requestString, request);
     }
 
     private static void parseFilters(String requestString, Request request) {
-        String param, value, comparator, operator;
+        String paramTitle, paramValue, compareOperator, logicalOperator;
         List<List<Filter>> allFilters = new ArrayList<>();
         List<Filter> filters = new ArrayList<>();
         if (requestString.toLowerCase().matches("where .*")) {
             requestString = requestString.substring(6).trim();
             while (!requestString.equals("")) {
-                operator = getOperator(requestString);
-                requestString = removeField(requestString, operator);
-                param = getFieldWithQuotes(requestString).toLowerCase();
-                requestString = removeField(requestString, param);
-                comparator = getOperation(requestString);
-                requestString = removeField(requestString, comparator);
+                logicalOperator = getLogicalOperator(requestString);
+                requestString = removeField(requestString, logicalOperator);
+                paramTitle = getFieldWithQuotes(requestString).toLowerCase();
+                requestString = removeField(requestString, paramTitle);
+                compareOperator = getCompareOperator(requestString);
+                requestString = removeField(requestString, compareOperator);
                 if (requestString.matches("^null ?.*"))
                     throw new RuntimeException("V filtrah WHERE nelza peredavat 'null'");
-                switch (param) {
-                    case LASTNAME -> value = getFieldWithQuotes(requestString);
-                    case ID, AGE -> value = getValueOfFilter(requestString, "\\d+", param);
-                    case COST -> value = getValueOfFilter(requestString, "\\d+(\\.\\d+)?", param);
-                    case ACTIVE -> value = getValueOfFilter(requestString, "(true|false)", param);
+                paramValue = switch (paramTitle) {
+                    case LASTNAME -> getFieldWithQuotes(requestString);
+                    case ID, AGE -> getValueOfFilter(requestString, "\\d+", paramTitle);
+                    case COST -> getValueOfFilter(requestString, "\\d+(\\.\\d+)?", paramTitle);
+                    case ACTIVE -> getValueOfFilter(requestString, "(true|false)", paramTitle);
                     default -> throw new RuntimeException("V tablitse net takoi kolonki");
-                }
-                requestString = removeField(requestString, value);
-                if (operator.equalsIgnoreCase("and") || operator.equalsIgnoreCase("")) {
-                    filters.add(new Filter(param, comparator, value));
-                } else if (operator.equalsIgnoreCase("or")) {
+                };
+                requestString = removeField(requestString, paramValue);
+                if (logicalOperator.equalsIgnoreCase("and") || logicalOperator.equalsIgnoreCase("")) {
+                    filters.add(new Filter(paramTitle, compareOperator, paramValue));
+                } else if (logicalOperator.equalsIgnoreCase("or")) {
                     allFilters.add(filters);
                     filters = new ArrayList<>();
-                    filters.add(new Filter(param, comparator, value));
+                    filters.add(new Filter(paramTitle, compareOperator, paramValue));
                 }
             }
             allFilters.add(filters);
@@ -83,6 +85,7 @@ public class RequestParser {
     }
 
     private static String getAction(String requestString) {
+        requestString = requestString.trim();
         if (requestString.toLowerCase().matches("^(insert +values +|update +values +|delete +where +|select +where +).*")) {
             return requestString.substring(0, requestString.indexOf(' ')).toLowerCase();
         } else if (requestString.equalsIgnoreCase(DELETE) || requestString.equalsIgnoreCase(SELECT))
@@ -144,23 +147,15 @@ public class RequestParser {
                     Pole doljno bit videleno znakami "'\"""");
     }
 
-    private static String getOperation(String requestString) {
-        if (requestString.startsWith("="))
-            return "=";
-        else if (requestString.startsWith("!="))
-            return "!=";
-        else if (requestString.startsWith("like"))
-            return "like";
-        else if (requestString.startsWith("ilike"))
-            return "ilike";
-        else if (requestString.startsWith(">="))
-            return ">=";
-        else if (requestString.startsWith("<="))
-            return "<=";
-        else if (requestString.startsWith("<"))
-            return "<";
-        else if (requestString.startsWith(">"))
-            return ">";
+    private static String getCompareOperator(String requestString) {
+        if (requestString.matches("^[=<>].*"))
+            return requestString.substring(0, 1);
+        else if (requestString.matches("^(!=|<=|>=).*"))
+            return requestString.substring(0, 2);
+        else if (requestString.toLowerCase().matches("^like.*"))
+            return requestString.substring(0, 4);
+        else if (requestString.toLowerCase().matches("^ilike.*"))
+            return requestString.substring(0, 5);
         else throw new RuntimeException("Neverniy operator sravneniya");
     }
 
@@ -177,7 +172,7 @@ public class RequestParser {
             throw new RuntimeException("Nevernoe znachenie polya " + currParam);
     }
 
-    private static String getOperator(String requestString) {
+    private static String getLogicalOperator(String requestString) {
         if (requestString.startsWith("'"))
             return "";
         else if (requestString.toLowerCase().matches("and .*"))
