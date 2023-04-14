@@ -43,22 +43,22 @@ public class Main {
             stringRequests.add("UPDATE VALUES 'active'=false, 'cost'=10.1 where 'id'=3");
 
 
-            stringRequests.add("DELETE");
-            stringRequests.add("SELECT ");
-            stringRequests.add("SELECT WHERE 'age'>0 and 'id'=40 and 'cost'=0 or 'id'=0");
-            stringRequests.add("SELECT WHERE 'age'>=55 and 'lastName' like '%est%'");
-            stringRequests.add("SELECT WHERE 'age'!=0 and 'age'<45");
-            stringRequests.add("SELECT WHERE 'cost'>5 and 'cost'<5");
-            stringRequests.add("SELECT WHERE 'cost'>5 and 'active'=false and 'age' !=0");
-            stringRequests.add("SELECT WHERE 'cost'>5 and 'active'=false and 'age' !=0 or 'age'=0");
-            stringRequests.add("SELECT WHERE 'lastName' like '%idor%'");
-            stringRequests.add("SELECT WHERE 'cost' > 33.19 and 'cost' < 33.21");
+//            stringRequests.add("DELETE");
+//            stringRequests.add("SELECT ");
+//            stringRequests.add("SELECT WHERE 'age'>0 and 'id'=40 and 'cost'=0 or 'id'=0");
+//            stringRequests.add("SELECT WHERE 'age'>=55 and 'lastName' like '%est%'");
+//            stringRequests.add("SELECT WHERE 'age'!=0 and 'age'<45");
+//            stringRequests.add("SELECT WHERE 'cost'>5 and 'cost'<5");
+//            stringRequests.add("SELECT WHERE 'cost'>5 and 'active'=false and 'age' !=0");
+//            stringRequests.add("SELECT WHERE 'cost'>5 and 'active'=false and 'age' !=0 or 'age'=0");
+//            stringRequests.add("SELECT WHERE 'lastName' like '%idor%'");
+//            stringRequests.add("SELECT WHERE 'cost' > 33.19 and 'cost' < 33.21");
 
 
-            stringRequests.add("DELETE WHERE 'cost' <100");
-            stringRequests.add("DELETE");
-
-            stringRequests.add("SELECT");
+//            stringRequests.add("DELETE WHERE 'cost' <100");
+//            stringRequests.add("DELETE");
+//
+//            stringRequests.add("SELECT");
 
             for (String stringRequest : stringRequests)
                 System.out.println(starter.execute(stringRequest));
