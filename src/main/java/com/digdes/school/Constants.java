@@ -22,5 +22,4 @@ public class Constants {
     public static final String GT = ">";                //'G'reater 'T'han
 
     public static final String NULL = "null";
-
 }

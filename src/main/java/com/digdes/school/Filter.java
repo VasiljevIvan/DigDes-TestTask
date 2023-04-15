@@ -1,6 +1,7 @@
 package com.digdes.school;
 
 public class Filter {
+
     private String param;
     private String comparator;
     private String value;
