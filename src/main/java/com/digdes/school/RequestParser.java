@@ -15,7 +15,7 @@ public class RequestParser {
         switch (requestAction) {
             case INSERT, UPDATE -> parseParams(requestString, request);
             case DELETE, SELECT -> parseFilters(requestString, request);
-            default -> throw new RuntimeException("Nevernaya komanda, ojidaetsya INSERT, UPDATE, DELETE, SELECT");
+            default -> throw new RuntimeException("Неверная команда, ожидаются INSERT, UPDATE, DELETE, SELECT");
         }
         return request;
     }
@@ -39,7 +39,7 @@ public class RequestParser {
                     case ID, AGE -> getValue(requestString, "\\d+", paramTitle);
                     case COST -> getValue(requestString, "\\d+(\\.\\d+)?", paramTitle);
                     case ACTIVE -> getValue(requestString, "(true|false)", paramTitle);
-                    default -> throw new RuntimeException("V tablitse net takoi kolonki");
+                    default -> throw new RuntimeException("В таблице нет такой колонки");
                 };
             requestString = removeField(requestString, paramValue);
             entry.put(paramTitle, paramValue);
@@ -62,13 +62,13 @@ public class RequestParser {
                 compareOperator = getCompareOperator(requestString);
                 requestString = removeField(requestString, compareOperator);
                 if (requestString.matches("^null ?.*"))
-                    throw new RuntimeException("V filtrah WHERE nelza peredavat 'null'");
+                    throw new RuntimeException("В WHERE нельзя передавать 'null'");
                 paramValue = switch (paramTitle) {
                     case LASTNAME -> getFieldWithQuotes(requestString);
                     case ID, AGE -> getValueOfFilter(requestString, "\\d+", paramTitle);
                     case COST -> getValueOfFilter(requestString, "\\d+(\\.\\d+)?", paramTitle);
                     case ACTIVE -> getValueOfFilter(requestString, "(true|false)", paramTitle);
-                    default -> throw new RuntimeException("V tablitse net takoi kolonki");
+                    default -> throw new RuntimeException("В таблице нет такой колонки");
                 };
                 requestString = removeField(requestString, paramValue);
                 if (logicalOperator.equalsIgnoreCase("and") || logicalOperator.equalsIgnoreCase("")) {
@@ -90,7 +90,7 @@ public class RequestParser {
             return requestString.substring(0, requestString.indexOf(' ')).toLowerCase();
         } else if (requestString.equalsIgnoreCase(DELETE) || requestString.equalsIgnoreCase(SELECT))
             return requestString.toLowerCase();
-        else throw new RuntimeException("Tolko zaprosi DELETE i SELECT mogut peredavatsya bez parametrov");
+        else throw new RuntimeException("Только запросы DELETE и SELECT могут передаваться без параметров");
     }
 
     private static String removeAction(String requestString, String requestActionString) {
@@ -110,7 +110,7 @@ public class RequestParser {
         int idxOfSecondQuote = requestString.indexOf("'", 1);
         if (requestString.startsWith("'") && idxOfSecondQuote >= 0)
             return requestString.substring(0, idxOfSecondQuote + 1);
-        else throw new RuntimeException("Pole doljno bit videleno znakami \"'\"");
+        else throw new RuntimeException("Поле должно быть в одинарных кавычках");
     }
 
     private static String getValue(String requestString, String regex, String currParam) {
@@ -126,9 +126,9 @@ public class RequestParser {
                 return requestString.substring(0, Math.min(idxOfSpace, idxOfComma));
             else if (requestString.matches(regex))
                 return requestString;
-            else throw new RuntimeException("Znachenie polya doljno zakanchivatsya zapyatoi ili probelom");
+            else throw new RuntimeException("Значение поля должно заканчиваться запятой или пробелом");
         } else
-            throw new RuntimeException("Nevernoe znachenie polya " + currParam);
+            throw new RuntimeException("Неверное значение поля " + currParam);
     }
 
     private static String removeField(String requestString, String field) {
@@ -141,22 +141,21 @@ public class RequestParser {
         else if (requestString.startsWith("'"))
             return requestString;
         else
-            throw new RuntimeException("""
-                    Posle nazvaniya parametra doljen bit znak "=".
-                    Posle znacheniya doljna bit zapyataya.
-                    Pole doljno bit videleno znakami "'\"""");
+            throw new RuntimeException("После названия параметра должен быть знак равно. " +
+                                        "После значения должна быть зяпятая. " +
+                                        "Поле должно быть в одинарных кавычках");
     }
 
     private static String getCompareOperator(String requestString) {
-        if (requestString.matches("^[=<>].*"))
-            return requestString.substring(0, 1);
-        else if (requestString.matches("^(!=|<=|>=).*"))
+        if (requestString.matches("^(!=|<=|>=).*"))
             return requestString.substring(0, 2);
+        else if (requestString.matches("^[=<>].*"))
+            return requestString.substring(0, 1);
         else if (requestString.toLowerCase().matches("^like.*"))
             return requestString.substring(0, 4);
         else if (requestString.toLowerCase().matches("^ilike.*"))
             return requestString.substring(0, 5);
-        else throw new RuntimeException("Neverniy operator sravneniya");
+        else throw new RuntimeException("Неверный оператор сравнения");
     }
 
     private static String getValueOfFilter(String requestString, String regex, String currParam) {
@@ -167,9 +166,9 @@ public class RequestParser {
                 return requestString.substring(0, idxOfSpace);
             else if (requestString.matches(regex))
                 return requestString;
-            else throw new RuntimeException("Znachenie polya doljno zakanchivatsya probelom");
+            else throw new RuntimeException("Значение поля должно заканчиваться пробелом");
         } else
-            throw new RuntimeException("Nevernoe znachenie polya " + currParam);
+            throw new RuntimeException("Неверное значение поля " + currParam);
     }
 
     private static String getLogicalOperator(String requestString) {
@@ -179,6 +178,6 @@ public class RequestParser {
             return requestString.substring(0, 3);
         else if (requestString.toLowerCase().matches("or .*"))
             return requestString.substring(0, 2);
-        else throw new RuntimeException("Zadan neverniy operator, ojidaetsya AND ili OR");
+        else throw new RuntimeException("Задан неверный логический оператор, ожидается AND или OR");
     }
 }
