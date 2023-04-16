@@ -1,23 +1,34 @@
 package com.digdes.school;
 
+/**
+ * Класс описывающий один из фильтров WHERE, содержит поля param, comparator и value.
+ *
+ * Поле param содержит название поля для которого будет применен этот фильтр.
+ *
+ * Поле comparator содержит строку с оператором сравнения.
+ *
+ * Поле value содержит строку со значением параметра.
+ *
+ * Дефолтного конструктора нет, используется конструктор со всеми полями.
+ * */
 public class Filter {
 
-    private String param;
+    private String paramTitle;
     private String comparator;
-    private String value;
+    private String paramValue;
 
-    public Filter(String param, String comparator, String value) {
-        this.param = param;
+    public Filter(String paramTitle, String comparator, String paramValue) {
+        this.paramTitle = paramTitle;
         this.comparator = comparator;
-        this.value = value;
+        this.paramValue = paramValue;
     }
 
-    public String getParam() {
-        return param;
+    public String getParamTitle() {
+        return paramTitle;
     }
 
-    public void setParam(String param) {
-        this.param = param;
+    public void setParamTitle(String paramTitle) {
+        this.paramTitle = paramTitle;
     }
 
     public String getComparator() {
@@ -28,20 +39,11 @@ public class Filter {
         this.comparator = comparator;
     }
 
-    public String getValue() {
-        return value;
+    public String getParamValue() {
+        return paramValue;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public String toString() {
-        return "Filter{" +
-                "param='" + param + '\'' +
-                ", comparator='" + comparator + '\'' +
-                ", value='" + value + '\'' +
-                '}';
+    public void setParamValue(String paramValue) {
+        this.paramValue = paramValue;
     }
 }

@@ -14,7 +14,7 @@ public class JavaSchoolStarter {
     }
 
     public List<Map<String, Object>> execute(String requestString) throws Exception {
-        Request request = RequestParser.parse(requestString);
+        Request request = new RequestParser(requestString).parse();
         return tableManager.handleRequest(request);
     }
 }

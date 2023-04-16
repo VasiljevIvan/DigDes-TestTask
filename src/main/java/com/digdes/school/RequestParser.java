@@ -7,88 +7,86 @@ import java.util.Map;
 
 import static com.digdes.school.Constants.*;
 
+/**
+ * Класс содержащий в себе public метод который возвращает объект
+ * класса Request соответствующий полученной в конструкторе класса строке запроса.
+ * */
 public class RequestParser {
-    public static Request parse(String requestString) {
-        String requestAction = getAction(requestString);
-        Request request = new Request(requestAction);
-        requestString = removeAction(requestString, requestAction);
-        switch (requestAction) {
-            case INSERT -> parseParams(requestString, request);
-            case UPDATE -> {
-                requestString = parseParams(requestString, request);
-                parseFilters(requestString, request);
-            }
-            case DELETE, SELECT -> parseFilters(requestString, request);
-            default -> throw new RuntimeException("Неверная команда, ожидаются INSERT, UPDATE, DELETE, SELECT");
-        }
-        return request;
+    private String requestString;
+
+    public RequestParser(String requestString) {
+        this.requestString = requestString;
     }
 
-    private static String parseParams(String requestString, Request request) {
+    /**
+     *
+     * */
+    public Request parse() {
+        String requestAction = getAction();
+        Request request = new Request(requestAction);
+        return switch (requestAction) {
+            case INSERT -> parseParams(request);
+            case UPDATE -> parseFilters(parseParams(request));
+            case DELETE, SELECT -> parseFilters(request);
+            default -> throw new RuntimeException("Неверная команда, ожидаются INSERT, UPDATE, DELETE, SELECT");
+        };
+    }
+
+    private Request parseParams(Request request) {
         Map<String, Object> entry = new HashMap<>();
         String paramTitle, paramValue;
 
         while (!requestString.toLowerCase().matches("where .*") && !requestString.equals("")) {
-            requestString = removeEqualsOrComma(requestString);
-
-            paramTitle = getFieldWithQuotes(requestString).toLowerCase();
-            requestString = removeField(requestString, paramTitle);
-
-            requestString = removeEqualsOrComma(requestString);
+            removeEqualsOrComma();
+            paramTitle = getFieldWithQuotes().toLowerCase();
+            removeEqualsOrComma();
             if (requestString.matches("^null[ ,]?.*")) {
-                paramValue = getValue(requestString, "null", paramTitle);
+                paramValue = getValue("null", paramTitle);
                 entry.put(paramTitle, paramValue);
             } else
                 switch (paramTitle) {
                     case LASTNAME -> {
-                        paramValue = getFieldWithQuotes(requestString);
+                        paramValue = getFieldWithQuotes();
                         entry.put(paramTitle, paramValue);
                     }
                     case ID, AGE -> {
-                        paramValue = getValue(requestString, "\\d+", paramTitle);
+                        paramValue = getValue("\\d+", paramTitle);
                         entry.put(paramTitle, Long.parseLong(paramValue));
                     }
                     case COST -> {
-                        paramValue = getValue(requestString, "\\d+(\\.\\d+)?", paramTitle);
+                        paramValue = getValue("\\d+(\\.\\d+)?", paramTitle);
                         entry.put(paramTitle, Double.parseDouble(paramValue));
                     }
                     case ACTIVE -> {
-                        paramValue = getValue(requestString, "(true|false)", paramTitle);
+                        paramValue = getValue("(true|false)", paramTitle);
                         entry.put(paramTitle, Boolean.parseBoolean(paramValue));
                     }
                     default -> throw new RuntimeException("В таблице нет такой колонки");
                 }
-            requestString = removeField(requestString, paramValue);
         }
         request.setParams(entry);
-        return requestString;
+        return request;
     }
 
-    private static void parseFilters(String requestString, Request request) {
+    private Request parseFilters(Request request) {
         String paramTitle, paramValue, compareOperator, logicalOperator;
         List<List<Filter>> allFilters = new ArrayList<>();
         List<Filter> filters = new ArrayList<>();
         if (requestString.toLowerCase().matches("where .*")) {
             requestString = requestString.substring(6).trim();
             while (!requestString.equals("")) {
-                logicalOperator = getLogicalOperator(requestString);
-                requestString = removeField(requestString, logicalOperator);
-
-                paramTitle = getFieldWithQuotes(requestString).toLowerCase();
-                requestString = removeField(requestString, paramTitle);
-
-                compareOperator = getCompareOperator(requestString);
-                requestString = removeField(requestString, compareOperator);
+                logicalOperator = getLogicalOperator();
+                paramTitle = getFieldWithQuotes().toLowerCase();
+                compareOperator = getCompareOperator();
                 if (requestString.matches("^null ?.*"))
                     throw new RuntimeException("В WHERE нельзя передавать 'null'");
                 paramValue = switch (paramTitle) {
-                    case LASTNAME -> getFieldWithQuotes(requestString);
-                    case ID, AGE -> getValueOfFilter(requestString, "\\d+", paramTitle);
-                    case COST -> getValueOfFilter(requestString, "\\d+(\\.\\d+)?", paramTitle);
-                    case ACTIVE -> getValueOfFilter(requestString, "(true|false)", paramTitle);
+                    case LASTNAME -> getFieldWithQuotes();
+                    case ID, AGE -> getValueOfFilter("\\d+", paramTitle);
+                    case COST -> getValueOfFilter("\\d+(\\.\\d+)?", paramTitle);
+                    case ACTIVE -> getValueOfFilter("(true|false)", paramTitle);
                     default -> throw new RuntimeException("В таблице нет такой колонки");
                 };
-                requestString = removeField(requestString, paramValue);
                 if (logicalOperator.equalsIgnoreCase("and") || logicalOperator.equalsIgnoreCase("")) {
                     filters.add(new Filter(paramTitle, compareOperator, paramValue));
                 } else if (logicalOperator.equalsIgnoreCase("or")) {
@@ -100,102 +98,133 @@ public class RequestParser {
             allFilters.add(filters);
         }
         request.setFilters(allFilters);
+        return request;
     }
 
-    private static String getAction(String requestString) {
+    private String getAction() {
+        String requestAction;
         requestString = requestString.trim();
         if (requestString.toLowerCase().matches("^(insert +values +|update +values +|delete +where +|select +where +).*")) {
-            return requestString.substring(0, requestString.indexOf(' ')).toLowerCase();
-        } else if (requestString.equalsIgnoreCase(DELETE) || requestString.equalsIgnoreCase(SELECT))
-            return requestString.toLowerCase();
-        else throw new RuntimeException("Только запросы DELETE и SELECT могут передаваться без параметров");
+            requestAction = requestString.substring(0, requestString.indexOf(' ')).toLowerCase();
+        } else if (requestString.equalsIgnoreCase(DELETE) || requestString.equalsIgnoreCase(SELECT)) {
+            requestAction = requestString.toLowerCase();
+        }else throw new RuntimeException("Только запросы DELETE и SELECT могут передаваться без параметров");
+
+        removeAction(requestAction);
+
+        return requestAction;
     }
 
-    private static String removeAction(String requestString, String requestActionString) {
+    private void removeAction(String requestAction) {
         int numberOfWordsToRemove = 1;
-        if (requestString.equalsIgnoreCase(requestActionString))
-            return "";
-        else if (requestActionString.equals(INSERT) || requestActionString.equals(UPDATE))
+        if (requestString.equalsIgnoreCase(requestAction))
+            return;
+        else if (requestAction.equals(INSERT) || requestAction.equals(UPDATE))
             numberOfWordsToRemove++;
         for (int i = 0; i < numberOfWordsToRemove; i++) {
             requestString = requestString.trim();
             requestString = requestString.substring(requestString.indexOf(' ') + 1);
         }
-        return requestString.trim();
     }
 
-    private static String getFieldWithQuotes(String requestString) {
+    private String getFieldWithQuotes() {
+        String paramTitle;
+
         int idxOfSecondQuote = requestString.indexOf("'", 1);
         if (requestString.startsWith("'") && idxOfSecondQuote >= 0)
-            return requestString.substring(0, idxOfSecondQuote + 1);
+            paramTitle = requestString.substring(0, idxOfSecondQuote + 1);
         else throw new RuntimeException("Поле должно быть в одинарных кавычках");
+
+        removeField(paramTitle);
+        return paramTitle;
     }
 
-    private static String getValue(String requestString, String regex, String currParam) {
+    private String getValue(String regex, String currParam) {
+        String paramValue;
+
         int idxOfSpace, idxOfComma;
         if (requestString.matches(regex + ".*")) {
             idxOfSpace = requestString.indexOf(" ");
             idxOfComma = requestString.indexOf(",");
             if (idxOfSpace == -1 && idxOfComma >= 0)
-                return requestString.substring(0, idxOfComma);
+                paramValue = requestString.substring(0, idxOfComma);
             else if (idxOfComma == -1 && idxOfSpace >= 0)
-                return requestString.substring(0, idxOfSpace);
+                paramValue = requestString.substring(0, idxOfSpace);
             else if (idxOfSpace >= 0)
-                return requestString.substring(0, Math.min(idxOfSpace, idxOfComma));
+                paramValue = requestString.substring(0, Math.min(idxOfSpace, idxOfComma));
             else if (requestString.matches(regex))
-                return requestString;
+                paramValue = requestString;
             else throw new RuntimeException("Значение поля должно заканчиваться запятой или пробелом");
         } else
             throw new RuntimeException("Неверное значение поля " + currParam);
+
+        removeField(paramValue);
+        return paramValue;
     }
 
-    private static String removeField(String requestString, String field) {
-        return requestString.substring(field.length()).trim();
+    private void removeField(String field) {
+        requestString = requestString.substring(field.length()).trim();
     }
 
-    private static String removeEqualsOrComma(String requestString) {
+    private void removeEqualsOrComma() {
+        requestString = requestString.trim();
         if (requestString.startsWith("=") || requestString.startsWith(","))
-            return requestString.substring(1).trim();
+            requestString = requestString.substring(1).trim();
         else if (requestString.startsWith("'"))
-            return requestString;
+            return;
         else
             throw new RuntimeException("После названия параметра должен быть знак равно. " +
                     "После значения должна быть зяпятая. " +
                     "Поле должно быть в одинарных кавычках");
     }
 
-    private static String getCompareOperator(String requestString) {
+    private String getCompareOperator() {
+        String compareOperator;
+
         if (requestString.matches("^(!=|<=|>=).*"))
-            return requestString.substring(0, 2);
+            compareOperator = requestString.substring(0, 2);
         else if (requestString.matches("^[=<>].*"))
-            return requestString.substring(0, 1);
+            compareOperator = requestString.substring(0, 1);
         else if (requestString.toLowerCase().matches("^like.*"))
-            return requestString.substring(0, 4);
+            compareOperator = requestString.substring(0, 4);
         else if (requestString.toLowerCase().matches("^ilike.*"))
-            return requestString.substring(0, 5);
+            compareOperator = requestString.substring(0, 5);
         else throw new RuntimeException("Неверный оператор сравнения");
+
+        removeField(compareOperator);
+        return compareOperator;
     }
 
-    private static String getValueOfFilter(String requestString, String regex, String currParam) {
+    private String getValueOfFilter(String regex, String currParam) {
+        String paramValue;
+
         int idxOfSpace;
         if (requestString.matches(regex + ".*")) {
             idxOfSpace = requestString.indexOf(" ");
             if (idxOfSpace >= 0)
-                return requestString.substring(0, idxOfSpace);
+                paramValue = requestString.substring(0, idxOfSpace);
             else if (requestString.matches(regex))
-                return requestString;
+                paramValue = requestString;
             else throw new RuntimeException("Значение поля должно заканчиваться пробелом");
         } else
             throw new RuntimeException("Неверное значение поля " + currParam);
+
+        removeField(paramValue);
+        return paramValue;
     }
 
-    private static String getLogicalOperator(String requestString) {
+    private String getLogicalOperator() {
+        String logicalOperator;
+
         if (requestString.startsWith("'"))
-            return "";
+            logicalOperator = "";
         else if (requestString.toLowerCase().matches("and .*"))
-            return requestString.substring(0, 3);
+            logicalOperator = requestString.substring(0, 3);
         else if (requestString.toLowerCase().matches("or .*"))
-            return requestString.substring(0, 2);
+            logicalOperator = requestString.substring(0, 2);
         else throw new RuntimeException("Задан неверный логический оператор, ожидается AND или OR");
+
+        removeField(logicalOperator);
+        return logicalOperator;
     }
 }

@@ -19,7 +19,7 @@ import java.util.Map;
  * Конструктор с одним полем т.к. поле action единственное обязательное к заполнению поле.
  */
 public class Request {
-
+    
     private String action;
     private Map<String, Object> params;
     private List<List<Filter>> filters;

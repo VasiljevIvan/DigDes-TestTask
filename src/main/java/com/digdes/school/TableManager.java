@@ -165,34 +165,34 @@ public class TableManager {
 
     private boolean checkMatches(Map<String, Object> currEntry, Filter currFilter) {
         boolean isMatches = false;
-        Object currEntryValue = currEntry.get(currFilter.getParam());
+        Object currEntryValue = currEntry.get(currFilter.getParamTitle());
 
-        switch (currFilter.getParam()) {
+        switch (currFilter.getParamTitle()) {
             case LASTNAME -> {
-                if (currFilter.getValue().matches("'.*'") && currEntryValue != null) {
+                if (currFilter.getParamValue().matches("'.*'") && currEntryValue != null) {
                     String valueTable = (String) currEntryValue;
-                    String valueFilter = currFilter.getValue();
+                    String valueFilter = currFilter.getParamValue();
                     isMatches = compareStrings(valueTable, valueFilter, currFilter);
                 } else isMatches = currEntryValue == null && currFilter.getComparator().equals(NE);
             }
             case ID, AGE -> {
-                if (currFilter.getValue().matches("\\d+") && currEntryValue != null) {
+                if (currFilter.getParamValue().matches("\\d+") && currEntryValue != null) {
                     Long valueTable = (Long) currEntryValue;
-                    Long valueFilter = Long.parseLong(currFilter.getValue());
+                    Long valueFilter = Long.parseLong(currFilter.getParamValue());
                     isMatches = compareNumbers(valueTable, valueFilter, currFilter);
                 } else isMatches = currEntryValue == null && currFilter.getComparator().equals(NE);
             }
             case COST -> {
-                if (currFilter.getValue().matches("\\d+(\\.\\d+)?") && currEntryValue != null) {
+                if (currFilter.getParamValue().matches("\\d+(\\.\\d+)?") && currEntryValue != null) {
                     Double valueTable = (Double) currEntryValue;
-                    Double valueFilter = Double.parseDouble(currFilter.getValue());
+                    Double valueFilter = Double.parseDouble(currFilter.getParamValue());
                     isMatches = compareNumbers(valueTable, valueFilter, currFilter);
                 } else isMatches = currEntryValue == null && currFilter.getComparator().equals(NE);
             }
             case ACTIVE -> {
-                if (currFilter.getValue().matches("(true|false)") && currEntryValue != null) {
+                if (currFilter.getParamValue().matches("(true|false)") && currEntryValue != null) {
                     boolean valueTable = (Boolean) currEntryValue;
-                    boolean valueFilter = Boolean.parseBoolean(currFilter.getValue());
+                    boolean valueFilter = Boolean.parseBoolean(currFilter.getParamValue());
                     isMatches = compareBoolean(valueTable, valueFilter, currFilter);
                 } else isMatches = currEntryValue == null && currFilter.getComparator().equals(NE);
             }
@@ -250,7 +250,7 @@ public class TableManager {
     }
 
     private boolean throwWrongParamException(Filter filter) {
-        throw new RuntimeException("Для параметра " + filter.getParam() +
+        throw new RuntimeException("Для параметра " + filter.getParamTitle() +
                 " нельзя использовать оператор \"" + filter.getComparator() + "\"");
     }
 
