@@ -1,5 +1,7 @@
 package com.digdes.school;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,18 +24,16 @@ public class TableManager {
     }
 
     public List<Map<String, Object>> handleRequest(Request request) {
-        List<Map<String, Object>> result = null;
-        switch (request.getAction()) {
-            case INSERT -> result = create(request);
-            case UPDATE -> result = update(request);
-            case DELETE -> result = delete(request);
-            case SELECT -> result = select(request);
-        }
-        printTable();
-        return result;
+        return switch (request.getAction()) {
+            case INSERT -> insert(request);
+            case UPDATE -> update(request);
+            case DELETE -> delete(request);
+            case SELECT -> select(request);
+            default -> null;
+        };
     }
 
-    public List<Map<String, Object>> create(Request request) {
+    public List<Map<String, Object>> insert(Request request) {
         Map<String, Object> requestEntry = request.getParams();
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, Object> resultEntry = new HashMap<>();
@@ -50,11 +50,16 @@ public class TableManager {
         }
 
         table.add(entryToPut);
-
         result.add(resultEntry);
+        printTable();
         return result;
     }
 
+    /**
+     * Метод обрабатыват UPDATE запрос. Поле isRemoved нужно для того, чтобы проверять
+     * удалить ли запись из таблицы, т.к. по условиям задачи, если все поля в одной
+     * записи пустые, то такую запись следует удалить.
+     **/
     private List<Map<String, Object>> update(Request request) {
         List<Map<String, Object>> result = new ArrayList<>();
         List<Map<String, Object>> entriesToRemove = new ArrayList<>();
@@ -93,6 +98,7 @@ public class TableManager {
         for (Map<String, Object> entryToRemove : entriesToRemove)
             table.remove(entryToRemove);
 
+        printTable();
         return result;
     }
 
@@ -103,6 +109,7 @@ public class TableManager {
         if (request.getParams() == null && request.getFilters().isEmpty()) {
             result = copyOfTableWithoutNulls(table);
             table.clear();
+            printTable();
             return result;
         }
 
@@ -132,6 +139,7 @@ public class TableManager {
         for (Map<String, Object> entryToRemove : entriesToRemove)
             table.remove(entryToRemove);
 
+        printTable();
         return result;
     }
 
@@ -139,6 +147,7 @@ public class TableManager {
         List<Map<String, Object>> result = new ArrayList<>();
 
         if (request.getParams() == null && request.getFilters().isEmpty()) {
+            printTable();
             return copyOfTableWithoutNulls(table);
         }
 
@@ -151,7 +160,7 @@ public class TableManager {
                     if (isMatches)
                         conditionsMatchesCounter++;
                 }
-                if (conditionsMatchesCounter >= condition.size()) {
+                if (conditionsMatchesCounter == condition.size()) {
                     Map<String, Object> resultEntry = new HashMap<>();
                     for (String column : columns)
                         if (currEntry.get(column) != null)
@@ -160,9 +169,13 @@ public class TableManager {
                 }
             }
 
+        printTable();
         return result;
     }
 
+    /**
+     * Метод проверяет соответствует ли элемент из таблицы фильтру.
+     */
     private boolean checkMatches(Map<String, Object> currEntry, Filter currFilter) {
         boolean isMatches = false;
         Object currEntryValue = currEntry.get(currFilter.getParamTitle());
@@ -173,8 +186,8 @@ public class TableManager {
                     String valueTable = (String) currEntryValue;
                     String valueFilter = currFilter.getParamValue();
                     isMatches = compareStrings(valueTable, valueFilter, currFilter);
-                } else isMatches = currEntryValue == null && currFilter.getComparator().equals(NE);
-            }
+                } else isMatches = currEntryValue == null && currFilter.getComparator().equals(NE);     // Вернет true только если текущий элемент
+            }                                                                                           // равен null, а опертор сравнения '!='
             case ID, AGE -> {
                 if (currFilter.getParamValue().matches("\\d+") && currEntryValue != null) {
                     Long valueTable = (Long) currEntryValue;
@@ -235,6 +248,9 @@ public class TableManager {
     }
 
     private boolean compareNumbers(Number valueTable, Number valueFilter, Filter filter) {
+        if (valueTable instanceof BigDecimal || valueTable instanceof BigInteger
+                || valueFilter instanceof BigDecimal || valueFilter instanceof BigInteger)
+            throw new RuntimeException("Нельзя передавать BigDecimal или BigInteger в этот метод");
         Double doubleValueTable = valueTable.doubleValue();
         Double doubleValueFilter = valueFilter.doubleValue();
         int isMatchesInt = doubleValueTable.compareTo(doubleValueFilter);
@@ -256,7 +272,7 @@ public class TableManager {
 
     private void printTable() {
         System.out.println("\n\n\nTable:");
-        for (Map<String, Object> currEntry : table)                             // <-   Просто для удобства вывожу на экран содержание таблицы
+        for (Map<String, Object> currEntry : table)
             System.out.println("\t\t\t" + currEntry);
         System.out.println();
     }

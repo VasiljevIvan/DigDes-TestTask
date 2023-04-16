@@ -19,7 +19,7 @@ public class RequestParser {
     }
 
     /**
-     *
+     *  Метод возвращает объект класса Request соответствующий полученной в конструкторе класса строке запроса.
      * */
     public Request parse() {
         String requestAction = getAction();
@@ -111,7 +111,6 @@ public class RequestParser {
         }else throw new RuntimeException("Только запросы DELETE и SELECT могут передаваться без параметров");
 
         removeAction(requestAction);
-
         return requestAction;
     }
 
