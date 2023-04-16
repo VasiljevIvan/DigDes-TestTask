@@ -178,14 +178,14 @@ public class TableManager {
                 if (currFilter.getValue().matches("\\d+") && !currEntryValue.equals(NULL)) {
                     Long valueTable = Long.parseLong((String) currEntryValue);
                     Long valueFilter = Long.parseLong(currFilter.getValue());
-                    isMatches = compareLong(valueTable, valueFilter, currFilter);
+                    isMatches = compareNumbers(valueTable, valueFilter, currFilter);
                 } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
             }
             case COST -> {
                 if (currFilter.getValue().matches("\\d+(\\.\\d+)?") && !currEntryValue.equals(NULL)) {
                     Double valueTable = Double.parseDouble((String) currEntryValue);
                     Double valueFilter = Double.parseDouble(currFilter.getValue());
-                    isMatches = compareDouble(valueTable, valueFilter, currFilter);
+                    isMatches = compareNumbers(valueTable, valueFilter, currFilter);
                 } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
             }
             case ACTIVE -> {
@@ -213,59 +213,43 @@ public class TableManager {
         return result;
     }
 
-    private boolean compareLong(Long valueTable, Long valueFilter, Filter filter) {
-        boolean isMatches;
-        switch (filter.getComparator()) {
-            case EQ -> isMatches = Objects.equals(valueTable, valueFilter);
-            case NE -> isMatches = !Objects.equals(valueTable, valueFilter);
-            case GE -> isMatches = valueTable >= valueFilter;
-            case LE -> isMatches = valueTable <= valueFilter;
-            case LT -> isMatches = valueTable < valueFilter;
-            case GT -> isMatches = valueTable > valueFilter;
-            default -> throw new RuntimeException("Для параметра " + filter.getParam() +
-                    " нельзя использовать оператор \"" + filter.getComparator() + "\"");
-        }
-        return isMatches;
-    }
-
-    private boolean compareDouble(Double valueTable, Double valueFilter, Filter filter) {
-        boolean isMatches;
-        switch (filter.getComparator()) {
-            case EQ -> isMatches = Objects.equals(valueTable, valueFilter);
-            case NE -> isMatches = !Objects.equals(valueTable, valueFilter);
-            case GE -> isMatches = valueTable >= valueFilter;
-            case LE -> isMatches = valueTable <= valueFilter;
-            case LT -> isMatches = valueTable < valueFilter;
-            case GT -> isMatches = valueTable > valueFilter;
-            default -> throw new RuntimeException("Для параметра " + filter.getParam() +
-                    " нельзя использовать оператор \"" + filter.getComparator() + "\"");
-        }
-        return isMatches;
-    }
-
     private boolean compareStrings(String valueTable, String valueFilter, Filter filter) {
-        boolean isMatches;
-        switch (filter.getComparator()) {
-            case EQ -> isMatches = valueTable.equals(valueFilter);
-            case NE -> isMatches = !valueTable.equals(valueFilter);
-            case LIKE -> isMatches = valueTable.matches(
+        return switch (filter.getComparator()) {
+            case EQ -> valueTable.equals(valueFilter);
+            case NE -> !valueTable.equals(valueFilter);
+            case LIKE -> valueTable.matches(
                     valueFilter.replaceAll("%", ".*"));
-            case ILIKE -> isMatches = valueTable.toLowerCase().matches(
+            case ILIKE -> valueTable.toLowerCase().matches(
                     valueFilter.toLowerCase().replaceAll("%", ".*"));
-            default -> throw new RuntimeException("Для параметра " + filter.getParam() +
-                    " нельзя использовать оператор \"" + filter.getComparator() + "\"");
-        }
-        return isMatches;
+            default -> throwWrongParamException(filter);
+        };
     }
 
     private boolean compareBoolean(boolean valueTable, boolean valueFilter, Filter filter) {
-        boolean isMatches;
-        switch (filter.getComparator()) {
-            case EQ -> isMatches = valueTable == valueFilter;
-            case NE -> isMatches = valueTable != valueFilter;
-            default -> throw new RuntimeException("Для параметра " + filter.getParam() +
-                    " нельзя использовать оператор \"" + filter.getComparator() + "\"");
-        }
-        return isMatches;
+        return switch (filter.getComparator()) {
+            case EQ -> valueTable == valueFilter;
+            case NE -> valueTable != valueFilter;
+            default -> throwWrongParamException(filter);
+        };
+    }
+
+    private boolean compareNumbers(Number valueTable, Number valueFilter, Filter filter) {
+        Double doubleValueTable = valueTable.doubleValue();
+        Double doubleValueFilter = valueFilter.doubleValue();
+        int isMatchesInt = doubleValueTable.compareTo(doubleValueFilter);
+        return switch (filter.getComparator()) {
+            case EQ -> isMatchesInt == 0;
+            case NE -> isMatchesInt != 0;
+            case GE -> isMatchesInt >= 0;
+            case LE -> isMatchesInt <= 0;
+            case LT -> isMatchesInt < 0;
+            case GT -> isMatchesInt > 0;
+            default -> throwWrongParamException(filter);
+        };
+    }
+
+    private boolean throwWrongParamException(Filter filter) {
+        throw new RuntimeException("Для параметра " + filter.getParam() +
+                " нельзя использовать оператор \"" + filter.getComparator() + "\"");
     }
 }
