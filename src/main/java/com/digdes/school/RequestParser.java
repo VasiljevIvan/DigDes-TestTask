@@ -31,18 +31,30 @@ public class RequestParser {
             requestString = removeField(requestString, paramTitle);
 
             requestString = removeEqualsOrComma(requestString);
-            if (requestString.matches("^null[ ,]?.*"))
+            if (requestString.matches("^null[ ,]?.*")) {
                 paramValue = getValue(requestString, "null", paramTitle);
-            else
-                paramValue = switch (paramTitle) {
-                    case LASTNAME -> getFieldWithQuotes(requestString);
-                    case ID, AGE -> getValue(requestString, "\\d+", paramTitle);
-                    case COST -> getValue(requestString, "\\d+(\\.\\d+)?", paramTitle);
-                    case ACTIVE -> getValue(requestString, "(true|false)", paramTitle);
+                entry.put(paramTitle, paramValue);
+            } else
+                switch (paramTitle) {
+                    case LASTNAME -> {
+                        paramValue = getFieldWithQuotes(requestString);
+                        entry.put(paramTitle, paramValue);
+                    }
+                    case ID, AGE -> {
+                        paramValue = getValue(requestString, "\\d+", paramTitle);
+                        entry.put(paramTitle, Long.parseLong(paramValue));
+                    }
+                    case COST -> {
+                        paramValue = getValue(requestString, "\\d+(\\.\\d+)?", paramTitle);
+                        entry.put(paramTitle, Double.parseDouble(paramValue));
+                    }
+                    case ACTIVE -> {
+                        paramValue = getValue(requestString, "(true|false)", paramTitle);
+                        entry.put(paramTitle, Boolean.parseBoolean(paramValue));
+                    }
                     default -> throw new RuntimeException("В таблице нет такой колонки");
-                };
+                }
             requestString = removeField(requestString, paramValue);
-            entry.put(paramTitle, paramValue);
         }
         request.setParams(entry);
         parseFilters(requestString, request);
@@ -57,8 +69,10 @@ public class RequestParser {
             while (!requestString.equals("")) {
                 logicalOperator = getLogicalOperator(requestString);
                 requestString = removeField(requestString, logicalOperator);
+
                 paramTitle = getFieldWithQuotes(requestString).toLowerCase();
                 requestString = removeField(requestString, paramTitle);
+
                 compareOperator = getCompareOperator(requestString);
                 requestString = removeField(requestString, compareOperator);
                 if (requestString.matches("^null ?.*"))

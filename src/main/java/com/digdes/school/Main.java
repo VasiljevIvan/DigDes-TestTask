@@ -43,7 +43,7 @@ public class Main {
         stringRequests.add("INSERT VALUES 'lastName' = 'СидОров' , 'id'=40, 'age'=99999 ,'cost'=0, 'active'=true");
 
         stringRequests.add("UPDATE VALUES 'id'=40 where 'lastName' ilike '%идор%'");
-        stringRequests.add("UPDATE VALUES 'lastName' = null, 'id'=null, 'age'=null, 'cost'=null, 'active'=null where 'cost'<0");
+        stringRequests.add("UPDATE VALUES 'lastName' = null, 'id'=null, 'age'=null, 'cost'=null, 'active'=null where 'lastname' like '%й A%'");
         stringRequests.add("UPDATE VALUES 'lastName' = 'Алёёёёёёёёна', 'active'=false, 'cost'=10.1 where 'id'=3");
 
         stringRequests.add("SELECT ");

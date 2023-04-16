@@ -34,15 +34,15 @@ public class TableManager {
     }
 
     public List<Map<String, Object>> create(Request request) {
-        List<Map<String, Object>> result = new ArrayList<>();
-        Map<String, Object> entryToPut = new HashMap<>();
-        Map<String, Object> resultEntry = new HashMap<>();
         Map<String, Object> requestEntry = request.getParams();
+        List<Map<String, Object>> result = new ArrayList<>();
+        Map<String, Object> resultEntry = new HashMap<>();
+        Map<String, Object> entryToPut = new HashMap<>();
 
         for (String column : columns) {
             Object requestValue = requestEntry.get(column);
             if (requestValue == null || requestValue.equals(NULL))
-                entryToPut.put(column, NULL);
+                entryToPut.put(column, null);
             else {
                 entryToPut.put(column, requestValue);
                 resultEntry.put(column, requestValue);
@@ -69,7 +69,7 @@ public class TableManager {
                     if (isMatches)
                         conditionsMatchesCounter++;
                 }
-                if (conditionsMatchesCounter >= condition.size()) {
+                if (conditionsMatchesCounter == condition.size()) {
                     Map<String, Object> requestParam = request.getParams();
                     Map<String, Object> resultEntry = new HashMap<>();
                     int nullValues = 0;
@@ -78,7 +78,7 @@ public class TableManager {
                         currEntry.put(column, requestParam.get(column));
 
                     for (String column : columns)
-                        if (!currEntry.get(column).equals(NULL))
+                        if (currEntry.get(column) != null && !currEntry.get(column).equals(NULL))
                             resultEntry.put(column, currEntry.get(column));
                         else
                             nullValues++;
@@ -119,7 +119,7 @@ public class TableManager {
                     Map<String, Object> resultEntry = new HashMap<>();
 
                     for (String column : columns)
-                        if (!currEntry.get(column).equals(NULL))
+                        if (currEntry.get(column) != null)
                             resultEntry.put(column, currEntry.get(column));
 
                     entriesToRemove.add(currEntry);
@@ -131,6 +131,7 @@ public class TableManager {
 
         for (Map<String, Object> entryToRemove : entriesToRemove)
             table.remove(entryToRemove);
+
         return result;
     }
 
@@ -153,7 +154,7 @@ public class TableManager {
                 if (conditionsMatchesCounter >= condition.size()) {
                     Map<String, Object> resultEntry = new HashMap<>();
                     for (String column : columns)
-                        if (!currEntry.get(column).equals(NULL))
+                        if (currEntry.get(column) != null)
                             resultEntry.put(column, currEntry.get(column));
                     result.add(resultEntry);
                 }
@@ -168,32 +169,32 @@ public class TableManager {
 
         switch (currFilter.getParam()) {
             case LASTNAME -> {
-                if (currFilter.getValue().matches("'.*'") && !currEntryValue.equals(NULL)) {
+                if (currFilter.getValue().matches("'.*'") && currEntryValue != null) {
                     String valueTable = (String) currEntryValue;
                     String valueFilter = currFilter.getValue();
                     isMatches = compareStrings(valueTable, valueFilter, currFilter);
-                } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
+                } else isMatches = currEntryValue == null && currFilter.getComparator().equals(NE);
             }
             case ID, AGE -> {
-                if (currFilter.getValue().matches("\\d+") && !currEntryValue.equals(NULL)) {
-                    Long valueTable = Long.parseLong((String) currEntryValue);
+                if (currFilter.getValue().matches("\\d+") && currEntryValue != null) {
+                    Long valueTable = (Long) currEntryValue;
                     Long valueFilter = Long.parseLong(currFilter.getValue());
                     isMatches = compareNumbers(valueTable, valueFilter, currFilter);
-                } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
+                } else isMatches = currEntryValue == null && currFilter.getComparator().equals(NE);
             }
             case COST -> {
-                if (currFilter.getValue().matches("\\d+(\\.\\d+)?") && !currEntryValue.equals(NULL)) {
-                    Double valueTable = Double.parseDouble((String) currEntryValue);
+                if (currFilter.getValue().matches("\\d+(\\.\\d+)?") && currEntryValue != null) {
+                    Double valueTable = (Double) currEntryValue;
                     Double valueFilter = Double.parseDouble(currFilter.getValue());
                     isMatches = compareNumbers(valueTable, valueFilter, currFilter);
-                } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
+                } else isMatches = currEntryValue == null && currFilter.getComparator().equals(NE);
             }
             case ACTIVE -> {
-                if (currFilter.getValue().matches("(true|false)") && !currEntryValue.equals(NULL)) {
-                    boolean valueTable = Boolean.parseBoolean((String) currEntryValue);
+                if (currFilter.getValue().matches("(true|false)") && currEntryValue != null) {
+                    boolean valueTable = (Boolean) currEntryValue;
                     boolean valueFilter = Boolean.parseBoolean(currFilter.getValue());
                     isMatches = compareBoolean(valueTable, valueFilter, currFilter);
-                } else isMatches = currEntryValue.equals(NULL) && currFilter.getComparator().equals(NE);
+                } else isMatches = currEntryValue == null && currFilter.getComparator().equals(NE);
             }
         }
 
@@ -205,7 +206,7 @@ public class TableManager {
         Map<String, Object> resultEntry = new HashMap<>();
         for (Map<String, Object> currEntry : table) {
             for (String column : columns)
-                if (!currEntry.get(column).equals(NULL))
+                if (currEntry.get(column) != null)
                     resultEntry.put(column, currEntry.get(column));
             result.add(resultEntry);
             resultEntry = new HashMap<>();
