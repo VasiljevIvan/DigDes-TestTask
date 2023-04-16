@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static com.digdes.school.Constants.*;
 
@@ -30,6 +29,7 @@ public class TableManager {
             case DELETE -> result = delete(request);
             case SELECT -> result = select(request);
         }
+        printTable();
         return result;
     }
 
@@ -251,5 +251,12 @@ public class TableManager {
     private boolean throwWrongParamException(Filter filter) {
         throw new RuntimeException("Для параметра " + filter.getParam() +
                 " нельзя использовать оператор \"" + filter.getComparator() + "\"");
+    }
+
+    private void printTable() {
+        System.out.println("\n\n\nTable:");
+        for (Map<String, Object> currEntry : table)                             // <-   Просто для удобства вывожу на экран содержание таблицы
+            System.out.println("\t\t\t" + currEntry);
+        System.out.println();
     }
 }

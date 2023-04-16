@@ -142,8 +142,8 @@ public class RequestParser {
             return requestString;
         else
             throw new RuntimeException("После названия параметра должен быть знак равно. " +
-                                        "После значения должна быть зяпятая. " +
-                                        "Поле должно быть в одинарных кавычках");
+                    "После значения должна быть зяпятая. " +
+                    "Поле должно быть в одинарных кавычках");
     }
 
     private static String getCompareOperator(String requestString) {

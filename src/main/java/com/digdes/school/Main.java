@@ -6,27 +6,31 @@ import java.util.Map;
 
 public class Main {
 
-    public static void main(String... args){
+    public static void main(String... args) {
         JavaSchoolStarter starter = new JavaSchoolStarter();
         try {
             //Вставка строки в коллекцию
-            List<Map<String,Object>> result1 = starter.execute("INSERT VALUES 'lastName' = 'Федоров' , 'id'=3, 'age'=40, 'active'=true");
+            List<Map<String, Object>> result1 = starter.execute("INSERT VALUES 'lastName' = 'Федоров' , 'id'=3, 'age'=40, 'active'=true");
             //Изменение значения которое выше записывали
-            List<Map<String,Object>> result2 = starter.execute("UPDATE VALUES 'active'=false, 'cost'=10.1 where 'id'=3");
+            List<Map<String, Object>> result2 = starter.execute("UPDATE VALUES 'active'=false, 'cost'=10.1 where 'id'=3");
             //Получение всех данных из коллекции (т.е. в данном примере вернется 1 запись)
-            List<Map<String,Object>> result3 = starter.execute("SELECT");
+            List<Map<String, Object>> result3 = starter.execute("SELECT");
 
             test(starter);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
+    /** Для удобства проверки обработки
+     *  запросов. Ради интереса вывожу
+     *  время выполнения.
+     */
     private static void test(JavaSchoolStarter starter) throws Exception {
         long start = System.currentTimeMillis();
 
         List<String> stringRequests = new ArrayList<>();
-        stringRequests.add("INSERT VALUES 'lastName' = 'Фёдоров' ,  'age'=23,  'active'=true");
+        stringRequests.add("INSERT VALUES 'lastName' = 'Висильев' ,  'age'=23,  'active'=true");
         stringRequests.add("INSERT VALUES 'lastName' = 'Петров' , 'id'=1, 'age'=32, 'cost'=2.3, 'active'=true");
         stringRequests.add("INSERT VALUES 'lastName' = 'Кудрявова' , 'age'=40, 'active'=false");
         stringRequests.add("INSERT VALUES  'lastName' = 'Иван where % and or , like ilike' , 'id'=3, 'cost'=2.3");
