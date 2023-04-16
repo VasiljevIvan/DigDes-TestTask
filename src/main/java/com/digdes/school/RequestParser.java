@@ -13,14 +13,18 @@ public class RequestParser {
         Request request = new Request(requestAction);
         requestString = removeAction(requestString, requestAction);
         switch (requestAction) {
-            case INSERT, UPDATE -> parseParams(requestString, request);
+            case INSERT -> parseParams(requestString, request);
+            case UPDATE -> {
+                requestString = parseParams(requestString, request);
+                parseFilters(requestString, request);
+            }
             case DELETE, SELECT -> parseFilters(requestString, request);
             default -> throw new RuntimeException("Неверная команда, ожидаются INSERT, UPDATE, DELETE, SELECT");
         }
         return request;
     }
 
-    private static void parseParams(String requestString, Request request) {
+    private static String parseParams(String requestString, Request request) {
         Map<String, Object> entry = new HashMap<>();
         String paramTitle, paramValue;
 
@@ -57,7 +61,7 @@ public class RequestParser {
             requestString = removeField(requestString, paramValue);
         }
         request.setParams(entry);
-        parseFilters(requestString, request);
+        return requestString;
     }
 
     private static void parseFilters(String requestString, Request request) {
